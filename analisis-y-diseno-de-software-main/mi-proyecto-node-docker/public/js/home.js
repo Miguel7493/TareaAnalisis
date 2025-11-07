@@ -1,7 +1,6 @@
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import { useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CreditSimulator } from "./simulator/CreditSimulator";
 const navLinks = [
     { href: "#simulador", label: "Simulador" },
     { href: "#acceso", label: "Acceso" },

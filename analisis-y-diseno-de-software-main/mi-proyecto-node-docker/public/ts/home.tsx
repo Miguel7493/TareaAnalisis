@@ -1,6 +1,6 @@
 import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CreditSimulator } from "./simulator/CreditSimulator";
+
 
 type AuthMode = "login" | "signup";
 
@@ -345,26 +345,7 @@ const App = () => {
           <AuthPanel mode={authMode} onModeChange={setAuthMode} onSubmit={handleSubmit} />
         </section>
 
-        <CreditSimulator />
-
-        <section id="respaldo" className="grid gap-6 rounded-[2.5rem] border border-white/60 bg-white/80 p-10 shadow-xl shadow-slate-900/10 backdrop-blur">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <h2 className="text-2xl font-semibold text-slate-900">Respaldos que importan</h2>
-              <p className="mt-2 max-w-xl text-sm text-slate-500">
-                Nuestra gobernanza combina tecnología auditada y custodios certificados para proteger cada decisión.
-              </p>
-            </div>
-            <PrimaryButton onClick={() => setAuthMode("signup")}>Crear acceso privado</PrimaryButton>
-          </div>
-          <div className="grid gap-4 md:grid-cols-3">
-            {assurances.map((item) => (
-              <article key={item.title} className="rounded-2xl border border-white/70 bg-white px-5 py-6 shadow-sm shadow-white/50">
-                <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
-                <p className="mt-2 text-sm text-slate-500">{item.caption}</p>
-              </article>
-            ))}
-          </div>
+        <section id="simulador" className="grid gap-12 lg:grid-cols-2 lg:items-center">
         </section>
       </main>
     </div>

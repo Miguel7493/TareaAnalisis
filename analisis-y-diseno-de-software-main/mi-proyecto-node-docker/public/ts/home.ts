@@ -44,7 +44,7 @@ const buildInput = (options: {
   input.name = options.id;
   input.type = inputType;
   input.placeholder = options.placeholder ?? '';
-  input.autocomplete = options.autocomplete ?? 'off';
+  input.setAttribute('autocomplete', options.autocomplete ?? 'off');
   input.required = true;
   input.className = 'w-full rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 shadow-inner shadow-slate-900/5 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100';
 
