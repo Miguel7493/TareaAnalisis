@@ -110,9 +110,9 @@ const PasswordStrength = ({ password }: { password: string }) => {
   }, [password]);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200/70 bg-white/80 p-3">
+    <div className="space-y-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3">
       <div className="flex items-center gap-3">
-        <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+        <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-white">
           {passwordRules.map((rule, index) => (
             <span
               key={rule.id}
@@ -165,8 +165,8 @@ const TextField = ({
   <label className="grid gap-2 text-left">
     <span className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400">{label}</span>
     <input
-      className={`w-full rounded-2xl border px-4 py-3 text-sm font-medium text-slate-900 shadow-inner shadow-white/70 outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 ${
-        error ? "border-rose-400/80 bg-rose-50/60" : "border-white/60 bg-white/80"
+      className={`w-full rounded-xl border px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 ${
+        error ? "border-rose-400/80 bg-rose-50/70" : "border-slate-200/60 bg-white/70"
       }`}
       type={type}
       name={name}
@@ -240,7 +240,8 @@ const AuthPanel = ({
         aria-label="Cerrar"
         onClick={onClose}
       />
-      <section className="relative w-full max-w-md space-y-6 rounded-[2rem] border border-white/60 bg-white/90 p-8 shadow-2xl shadow-slate-900/20">
+      <section className="relative w-full max-w-md space-y-6 overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-8 shadow-xl shadow-slate-900/15">
+        <div className="pointer-events-none absolute -top-16 left-1/2 hidden h-32 w-32 -translate-x-1/2 rounded-full bg-gradient-to-br from-slate-900/15 to-rose-300/20 blur-2xl sm:block" />
         <header className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
@@ -249,6 +250,9 @@ const AuthPanel = ({
             <h2 className="mt-1 text-2xl font-semibold text-slate-900">
               {isSignup ? "Únete a Aurora Privé" : "Accede a tu cuenta"}
             </h2>
+            <p className="mt-1 text-xs text-slate-500">
+              {isSignup ? "Completa tus datos para activar tu banca privada." : "Ingresa con tu correo y clave blindada."}
+            </p>
           </div>
           <button
             type="button"
@@ -467,9 +471,10 @@ const App = () => {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-200">
-      <div className="pointer-events-none absolute inset-0 mix-blend-multiply">
-        <div className="aurora-gradient absolute -left-32 top-20 h-72 w-72 rounded-full blur-3xl opacity-40" />
-        <div className="aurora-gradient absolute bottom-10 right-0 h-80 w-80 rounded-full blur-3xl opacity-30" />
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="aurora-gradient absolute -left-24 top-16 h-64 w-64 rounded-full blur-3xl opacity-40" />
+        <div className="aurora-gradient absolute right-[-6rem] top-1/2 h-72 w-72 -translate-y-1/2 rounded-full blur-3xl opacity-30" />
+        <div className="aurora-gradient absolute -bottom-20 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl opacity-20" />
       </div>
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-10">
         <div className="flex items-center gap-3">
@@ -478,88 +483,94 @@ const App = () => {
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">Aurora Privé</p>
-            <p className="text-sm text-slate-500">Créditos personalizados para Chile</p>
+            <p className="text-sm text-slate-500">Experiencia privada de crédito</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => {
-            resetState();
-            setActiveMode("login");
-          }}
-          className="hidden rounded-full border border-slate-300/70 px-5 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900 md:inline-flex"
-        >
-          Ingresar
-        </button>
+        <div className="hidden items-center gap-2 md:flex">
+          <button
+            type="button"
+            onClick={() => {
+              resetState();
+              setActiveMode("login");
+            }}
+            className="rounded-full border border-slate-300/70 px-5 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
+          >
+            Ingresar
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              resetState();
+              setActiveMode("signup");
+            }}
+            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700"
+          >
+            Crear cuenta
+          </button>
+        </div>
       </header>
-      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center justify-center px-6 pb-24 pt-16">
-        <section className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.5em] text-slate-400">Bienvenido</p>
-          <h1 className="mt-6 text-4xl font-semibold text-slate-900 sm:text-5xl">
-            Una banca privada que comienza con una experiencia impecable
-          </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-sm text-slate-500 sm:text-base">
-            Accede a un proceso de registro y autenticación diseñado para proteger tus datos y conectarte con especialistas de
-            confianza.
-          </p>
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <button
-              type="button"
-              onClick={() => {
-                resetState();
-                setActiveMode("signup");
-              }}
-              className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700 sm:w-auto"
-            >
-              Crear cuenta
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                resetState();
-                setActiveMode("login");
-              }}
-              className="inline-flex w-full items-center justify-center rounded-full border border-slate-300/70 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 sm:w-auto"
-            >
-              Ingresar
-            </button>
-            <a
-              href="#simulacion"
-              className="inline-flex w-full items-center justify-center rounded-full border border-transparent bg-white/70 px-6 py-3 text-sm font-semibold text-slate-700 shadow-inner shadow-white/80 transition hover:border-slate-300 hover:bg-white sm:w-auto"
-            >
-              Simula tu crédito
-            </a>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-20">
+        <section className="relative isolate w-full overflow-hidden rounded-[3rem] border border-white/60 bg-white/75 p-10 text-center shadow-xl shadow-slate-900/10">
+          <div className="pointer-events-none absolute inset-0 opacity-70">
+            <div className="absolute left-1/2 top-0 h-48 w-72 -translate-x-1/2 rounded-full bg-gradient-to-r from-slate-900/10 to-slate-900/0 blur-2xl" />
+            <div className="absolute bottom-0 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-gradient-to-r from-rose-300/20 to-indigo-300/20 blur-3xl" />
           </div>
-        </section>
-        <section className="mt-16 grid w-full max-w-3xl gap-4 sm:grid-cols-3" aria-label="Pilares de confianza">
-          {[
-            "Identidad verificada",
-            "Custodia cifrada",
-            "Asesoría humana",
-          ].map((item) => (
-            <div
-              key={item}
-              className="rounded-3xl border border-white/60 bg-white/70 px-5 py-6 text-center text-sm font-medium text-slate-600 shadow-sm shadow-slate-900/5"
-            >
-              {item}
+          <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-12">
+            <div className="space-y-4">
+              <span className="inline-flex items-center rounded-full border border-slate-200/70 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-400">
+                Bienvenido a Aurora Privé
+              </span>
+              <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
+                Una entrada serena a tu próximo crédito
+              </h1>
+              <p className="text-sm text-slate-500 sm:text-base">
+                Decide en segundos: registra tu acceso, ingresa de forma segura o explora el simulador premium cuando esté disponible.
+              </p>
             </div>
-          ))}
-        </section>
-        <section id="simulacion" className="mt-20 w-full max-w-3xl rounded-[2rem] border border-white/60 bg-white/80 p-8 text-left shadow-sm shadow-slate-900/10">
-          <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Simula tu crédito</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-900">Conoce tus condiciones en minutos</h2>
-          <p className="mt-3 text-sm text-slate-500">
-            Próximamente podrás estimar cuotas, tasas y beneficios exclusivos sin salir de esta experiencia.
-          </p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => showToast("El simulador premium estará disponible pronto.", "info")}
-              className="inline-flex items-center justify-center rounded-full border border-slate-300/70 px-5 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
-            >
-              Notificarme
-            </button>
-            <span className="text-xs text-slate-400">Desarrollado para el mercado chileno</span>
+            <div className="flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={() => {
+                  resetState();
+                  setActiveMode("signup");
+                }}
+                className="group inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto"
+              >
+                <span className="mr-2 text-base">●</span> Crear cuenta privada
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  resetState();
+                  setActiveMode("login");
+                }}
+                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300/70 px-7 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 sm:w-auto"
+              >
+                Ingresar
+              </button>
+              <button
+                type="button"
+                onClick={() => showToast("Nuestro simulador premium se despliega muy pronto.", "info")}
+                className="inline-flex w-full items-center justify-center rounded-full border border-transparent bg-white/80 px-7 py-3 text-sm font-semibold text-slate-700 shadow-inner shadow-white/70 transition hover:border-slate-300 hover:bg-white sm:w-auto"
+              >
+                Simula tu crédito
+              </button>
+            </div>
+            <dl className="grid w-full gap-4 sm:grid-cols-3">
+              {[
+                { label: "Clientes asesorados", value: "1.200+" },
+                { label: "Tiempo promedio de activación", value: "< 5 min" },
+                { label: "Cobertura", value: "Todo Chile" },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-6 text-left shadow-sm shadow-white/70"
+                >
+                  <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400">{item.label}</dt>
+                  <dd className="mt-2 text-xl font-semibold text-slate-900">{item.value}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
         </section>
       </main>
