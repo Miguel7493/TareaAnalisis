@@ -1,409 +1,159 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-const authPanels = document.getElementById('auth-panels');
-const menuToggle = document.getElementById('menu-toggle');
-const mobileMenu = document.getElementById('mobile-menu');
-const toastElement = document.getElementById('toast');
-const toastMessage = document.getElementById('toast-message');
-const currentYearElement = document.getElementById('copyright-year');
-
-const authCopies = {
-  login: {
-    title: 'Bienvenido de vuelta',
-    subtitle: 'Accede a tu panel financiero para continuar administrando tus préstamos.',
-    cta: 'Iniciar sesión',
-  },
-  signup: {
-    title: 'Crea tu cuenta',
-    subtitle: 'Regístrate en minutos para simular, solicitar y gestionar créditos inteligentes.',
-    cta: 'Crear cuenta',
-  },
-};
-
-let activeAuthMode = 'login';
-let toastTimeout;
-
-const buildInput = (options) => {
-  const inputType = options.type ?? 'text';
-  const field = document.createElement('label');
-  field.className = 'grid gap-2 text-sm font-medium text-slate-600';
-  field.htmlFor = options.id;
-
-  const span = document.createElement('span');
-  span.textContent = options.label;
-  span.className = 'text-xs font-semibold uppercase tracking-wide text-slate-500';
-
-  const input = document.createElement('input');
-  input.id = options.id;
-  input.name = options.id;
-  input.type = inputType;
-  input.placeholder = options.placeholder ?? '';
-  input.autocomplete = options.autocomplete ?? 'off';
-  input.required = true;
-  input.className = 'w-full rounded-2xl border border-slate-200/70 bg-white/80 px-4 py-3 text-sm font-medium text-slate-700 shadow-inner shadow-slate-900/5 transition focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100';
-
-  field.append(span, input);
-  return field;
-};
-
-const buildAuthForm = (mode) => {
-  const form = document.createElement('form');
-  form.id = `${mode}-form`;
-  form.className = 'grid gap-4';
-  form.setAttribute('aria-label', mode === 'login' ? 'Formulario de inicio de sesión' : 'Formulario de registro');
-
-  const controls = [];
-
-  if (mode === 'signup') {
-    controls.push(
-      buildInput({
-        id: 'fullName',
-        label: 'Nombre completo',
-        placeholder: 'Camila González',
-        autocomplete: 'name',
-      }),
-    );
-  }
-
-  controls.push(
-    buildInput({
-      id: 'email',
-      label: 'Correo electrónico',
-      type: 'email',
-      placeholder: 'tu@email.com',
-      autocomplete: 'email',
-    }),
-  );
-
-  controls.push(
-    buildInput({
-      id: 'password',
-      label: 'Contraseña',
-      type: 'password',
-      placeholder: '••••••••',
-      autocomplete: mode === 'login' ? 'current-password' : 'new-password',
-    }),
-  );
-
-  if (mode === 'signup') {
-    const termsWrapper = document.createElement('label');
-    termsWrapper.className = 'flex items-start gap-3 text-xs text-slate-500';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.required = true;
-    checkbox.className = 'mt-1 h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-300';
-
-    const text = document.createElement('span');
-    text.innerHTML =
-      'Acepto recibir comunicaciones relevantes y confirmo que he leído la política de privacidad.';
-
-    termsWrapper.append(checkbox, text);
-    form.append(...controls, termsWrapper);
-  } else {
-    const rememberWrapper = document.createElement('label');
-    rememberWrapper.className = 'flex items-center justify-between text-xs text-slate-500';
-
-    const rememberBox = document.createElement('label');
-    rememberBox.className = 'flex items-center gap-2';
-
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.className = 'h-4 w-4 rounded border-slate-300 text-indigo-500 focus:ring-indigo-300';
-
-    const rememberText = document.createElement('span');
-    rememberText.textContent = 'Recordar acceso seguro';
-
-    rememberBox.append(checkbox, rememberText);
-
-    const recoveryLink = document.createElement('a');
-    recoveryLink.href = '#';
-    recoveryLink.className = 'font-semibold text-indigo-500 hover:text-indigo-400';
-    recoveryLink.textContent = '¿Olvidaste tu contraseña?';
-
-    rememberWrapper.append(rememberBox, recoveryLink);
-    form.append(...controls, rememberWrapper);
-  }
-
-  const submitButton = document.createElement('button');
-  submitButton.type = 'submit';
-  submitButton.className = 'group flex w-full items-center justify-center gap-2 rounded-full bg-indigo-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500';
-  submitButton.innerHTML = `
-    <span>${authCopies[mode].cta}</span>
-    <svg class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7" />
-    </svg>
-  `;
-
-  form.append(submitButton);
-  return form;
-};
-
-const renderAuthPanels = (mode) => {
-  if (!authPanels) return;
-  authPanels.innerHTML = '';
-
-  const header = document.createElement('div');
-  header.className = 'flex items-center justify-between';
-
-  const copyGroup = document.createElement('div');
-  copyGroup.className = 'space-y-1';
-
-  const title = document.createElement('h3');
-  title.className = 'text-lg font-semibold text-slate-900';
-  title.textContent = authCopies[mode].title;
-
-  const subtitle = document.createElement('p');
-  subtitle.className = 'text-sm text-slate-500';
-  subtitle.textContent = authCopies[mode].subtitle;
-
-  copyGroup.append(title, subtitle);
-
-  const modeSwitcher = document.createElement('div');
-  modeSwitcher.className = 'rounded-full border border-slate-200/80 bg-white/70 p-1 text-xs font-semibold text-slate-500 shadow-inner shadow-slate-900/5';
-
-  ['login', 'signup'].forEach((authMode) => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.dataset.mode = authMode;
-    button.textContent = authMode === 'login' ? 'Ingresar' : 'Registrarme';
-    button.className = `rounded-full px-4 py-1.5 transition ${
-      authMode === mode
-        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/25'
-        : 'text-slate-500 hover:text-indigo-500'
-    }`;
-    button.addEventListener('click', () => setActiveAuthMode(authMode));
-    modeSwitcher.appendChild(button);
-  });
-
-  header.append(copyGroup, modeSwitcher);
-  authPanels.append(header, buildAuthForm(mode));
-
-  const form = document.getElementById(`${mode}-form`);
-  form?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const formData = new FormData(form);
-    const email = String(formData.get('email') ?? '').trim();
-    if (!email) {
-      showToast('Por favor ingresa un correo válido.');
-      return;
-    }
-
-    showToast(
-      mode === 'login'
-        ? 'Inicio de sesión simulado. Pronto podrás acceder a tu panel.'
-        : 'Registro simulado con éxito. Te daremos la bienvenida muy pronto!'
-    );
-    form.reset();
-  });
-};
-
-const showToast = (message) => {
-  if (!toastElement || !toastMessage) return;
-  toastMessage.textContent = message;
-  toastElement.classList.remove('hidden');
-  toastElement.classList.add('flex');
-
-  if (toastTimeout) {
-    window.clearTimeout(toastTimeout);
-  }
-
-  toastTimeout = window.setTimeout(() => {
-    toastElement.classList.add('hidden');
-    toastElement.classList.remove('flex');
-  }, 3600);
-};
-
-const setActiveAuthMode = (mode) => {
-  activeAuthMode = mode;
-  renderAuthPanels(mode);
-};
-
-const initialiseMobileMenu = () => {
-  if (!menuToggle || !mobileMenu) return;
-  menuToggle.addEventListener('click', () => {
-    const isHidden = mobileMenu.classList.contains('hidden');
-    mobileMenu.classList.toggle('hidden');
-    menuToggle.setAttribute('aria-expanded', String(isHidden));
-  });
-};
-
-const initialiseFaqAccordion = () => {
-  const faqItems = document.querySelectorAll('#faq-list .faq-item');
-  faqItems.forEach((item) => {
-    const button = item.querySelector('button');
-    const content = item.querySelector('div:last-of-type');
-    const icon = item.querySelector('svg');
-
-    if (!button || !content || !icon) return;
-
-    content.classList.add('hidden');
-    button.setAttribute('aria-expanded', 'false');
-
-    button.addEventListener('click', () => {
-      const expanded = button.getAttribute('aria-expanded') === 'true';
-      button.setAttribute('aria-expanded', String(!expanded));
-      content.classList.toggle('hidden');
-      icon.classList.toggle('rotate-180');
-    });
-  });
-};
-
-const initialiseAuthTriggers = () => {
-  const triggers = document.querySelectorAll('[data-auth]');
-  triggers.forEach((trigger) => {
-    trigger.addEventListener('click', () => {
-      const mode = trigger.dataset.auth;
-      if (!mode) return;
-      setActiveAuthMode(mode);
-      toastElement?.classList.add('hidden');
-      toastElement?.classList.remove('flex');
-      const panel = authPanels?.getBoundingClientRect();
-      if (!panel) return;
-      window.scrollTo({ top: window.scrollY + panel.top - 120, behavior: 'smooth' });
-    });
-  });
-};
-
-const initialiseFooterYear = () => {
-  if (!currentYearElement) return;
-  currentYearElement.textContent = String(new Date().getFullYear());
-};
-
-const init = () => {
-  initialiseMobileMenu();
-  initialiseFaqAccordion();
-  initialiseAuthTriggers();
-  initialiseFooterYear();
-  setActiveAuthMode(activeAuthMode);
-};
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-=======
-import React, { useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
+import { useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
+<<<<<<< Updated upstream
+const navLinks = [
+    { href: "#acceso", label: "Acceso" },
+    { href: "#respaldo", label: "Respaldo" },
+];
+const stats = [
+    { value: "12", label: "Años de solvencia" },
+    { value: "98%", label: "Clientes retenidos" },
+    { value: "$320M", label: "Activos gestionados" },
+];
+const assurances = [
+    { title: "Gobierno serio", caption: "Comités de riesgo y auditoría continua." },
+    { title: "Custodia blindada", caption: "Infraestructura certificada y cifrado integral." },
+    { title: "Equipo privado", caption: "Asesores senior para decisiones sensibles." },
+];
+const authCopy = {
+    signup: {
+        title: "Abre tu acceso",
+        hint: "Consolida tus créditos en Aurora Privé.",
+        cta: "Crear cuenta",
+    },
+    login: {
+        title: "Bienvenido",
+        hint: "Ingresa a tu portafolio seguro.",
+        cta: "Continuar",
+    },
+};
+const OutlineButton = ({ children, onClick, className = "", type = "button", }) => (_jsx("button", { type: type, onClick: onClick, className: `inline-flex items-center justify-center rounded-full border border-slate-300/70 px-5 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900 ${className}`.trim(), children: children }));
+const PrimaryButton = ({ children, onClick, className = "", type = "button", }) => (_jsx("button", { type: type, onClick: onClick, className: `inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-700 ${className}`.trim(), children: children }));
+const InputField = ({ label, type, name, placeholder, autoComplete, }) => (_jsxs("label", { className: "grid gap-1 text-left", children: [_jsx("span", { className: "text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-400", children: label }), _jsx("input", { className: "w-full rounded-xl border border-white/40 bg-white/70 px-4 py-3 text-sm font-medium text-slate-800 shadow-inner shadow-white/70 outline-none transition focus:border-slate-900 focus:bg-white focus:ring focus:ring-slate-900/10", type: type, name: name, placeholder: placeholder, autoComplete: autoComplete, required: true })] }));
+const AuthPanel = ({ mode, onModeChange, onSubmit, }) => {
+    const fields = useMemo(() => {
+        if (mode === "signup") {
+            return (_jsxs(_Fragment, { children: [_jsx(InputField, { label: "Nombre", type: "text", name: "fullName", placeholder: "Sof\u00EDa Ram\u00EDrez", autoComplete: "name" }), _jsx(InputField, { label: "Correo", type: "email", name: "email", placeholder: "sofia@aurora.com", autoComplete: "email" }), _jsx(InputField, { label: "Contrase\u00F1a", type: "password", name: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "new-password" })] }));
+        }
+        return (_jsxs(_Fragment, { children: [_jsx(InputField, { label: "Correo", type: "email", name: "email", placeholder: "tu@aurora.com", autoComplete: "email" }), _jsx(InputField, { label: "Contrase\u00F1a", type: "password", name: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "current-password" })] }));
+    }, [mode]);
+    const copy = authCopy[mode];
+    return (_jsxs("section", { id: "acceso", className: "relative isolate overflow-hidden rounded-[2rem] bg-white/75 p-8 shadow-xl shadow-slate-900/10 ring-1 ring-white/60 backdrop-blur", children: [_jsx("div", { className: "absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.2),_rgba(15,23,42,0.08))]" }), _jsxs("div", { className: "flex items-center justify-between gap-3", children: [_jsxs("div", { children: [_jsx("p", { className: "text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400", children: mode === "signup" ? "Alta" : "Ingreso" }), _jsx("h2", { className: "mt-2 text-2xl font-semibold text-slate-900", children: copy.title }), _jsx("p", { className: "mt-1 text-sm text-slate-500", children: copy.hint })] }), _jsxs("div", { className: "flex gap-2 rounded-full bg-slate-900/5 p-1", children: [_jsx("button", { type: "button", onClick: () => onModeChange("signup"), className: `rounded-full px-3 py-1 text-xs font-semibold transition ${mode === "signup" ? "bg-slate-900 text-white shadow" : "text-slate-500 hover:text-slate-900"}`, children: "Registro" }), _jsx("button", { type: "button", onClick: () => onModeChange("login"), className: `rounded-full px-3 py-1 text-xs font-semibold transition ${mode === "login" ? "bg-slate-900 text-white shadow" : "text-slate-500 hover:text-slate-900"}`, children: "Ingreso" })] })] }), _jsxs("form", { className: "mt-6 grid gap-5", onSubmit: (event) => onSubmit(mode, event), children: [fields, _jsx(PrimaryButton, { className: "mt-2 w-full", type: "submit", children: copy.cta })] }), _jsx("p", { className: "mt-5 text-center text-xs text-slate-400", children: "Al continuar aceptas el acuerdo de servicio." })] }));
+};
+const Toast = ({ state, onClose }) => {
+    if (!state)
+        return null;
+    const toneStyles = state.tone === "success"
+        ? "bg-emerald-500 text-white shadow-emerald-600/40"
+        : "bg-slate-900 text-white shadow-slate-900/30";
+    return (_jsx("div", { className: `pointer-events-auto fixed inset-x-0 top-6 z-50 mx-auto w-fit rounded-full px-5 py-3 text-sm font-medium shadow-lg ${toneStyles}`, children: _jsxs("div", { className: "flex items-center gap-3", children: [_jsx("span", { className: "inline-flex h-2.5 w-2.5 rounded-full bg-white/70" }), _jsx("span", { children: state.message }), _jsx("button", { type: "button", onClick: onClose, className: "rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:bg-white/30", children: "Cerrar" })] }) }));
+};
+const App = () => {
+    const [authMode, setAuthMode] = useState("signup");
+    const [toast, setToast] = useState(null);
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const handleSubmit = (mode, event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const name = form.get("fullName")?.toString();
+        const email = form.get("email")?.toString();
+        setToast({
+            tone: mode === "signup" ? "success" : "info",
+            message: mode === "signup" ? `Cuenta activada para ${name ?? email ?? "nuevo cliente"}` : `Bienvenido de nuevo, ${email ?? "cliente"}`,
+        });
+        window.setTimeout(() => {
+            setToast(null);
+        }, 3600);
+    };
+    return (_jsxs("div", { className: "relative min-h-screen bg-[#f5f7fb] text-slate-900", children: [_jsxs("div", { className: "pointer-events-none absolute inset-0 -z-10 overflow-hidden", children: [_jsx("div", { className: "absolute left-1/2 top-0 h-[36rem] w-[36rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(15,23,42,0.09),_rgba(15,23,42,0))]" }), _jsx("div", { className: "absolute right-[10%] top-24 h-56 w-56 rounded-full bg-[radial-gradient(circle,_rgba(30,64,175,0.22),_rgba(30,64,175,0))]" }), _jsx("div", { className: "absolute left-[8%] bottom-14 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.22),_rgba(14,116,144,0))]" })] }), _jsx(Toast, { state: toast, onClose: () => setToast(null) }), _jsxs("header", { className: "mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-8", children: [_jsxs("a", { href: "#", className: "flex items-center gap-2 text-lg font-semibold text-slate-900", children: [_jsx("span", { className: "flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-sm font-bold text-white", children: "AP" }), "Aurora Priv\u00E9"] }), _jsx("nav", { className: "hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex", children: navLinks.map((link) => (_jsx("a", { href: link.href, className: "transition hover:text-slate-900", children: link.label }, link.href))) }), _jsxs("div", { className: "hidden gap-3 md:flex", children: [_jsx(OutlineButton, { onClick: () => setAuthMode("login"), children: "Iniciar sesi\u00F3n" }), _jsx(PrimaryButton, { onClick: () => setAuthMode("signup"), children: "Abrir cuenta" })] }), _jsxs("button", { type: "button", className: "md:hidden", onClick: () => setMobileOpen((prev) => !prev), "aria-label": "Alternar navegaci\u00F3n", children: [_jsx("span", { className: "block h-0.5 w-6 bg-slate-900" }), _jsx("span", { className: "mt-1 block h-0.5 w-6 bg-slate-900" }), _jsx("span", { className: "mt-1 block h-0.5 w-6 bg-slate-900" })] })] }), mobileOpen ? (_jsxs("div", { className: "mx-6 mb-6 rounded-3xl border border-slate-200/60 bg-white/90 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur md:hidden", children: [_jsx("nav", { className: "grid gap-4", children: navLinks.map((link) => (_jsx("a", { href: link.href, className: "font-medium text-slate-700", onClick: () => setMobileOpen(false), children: link.label }, link.href))) }), _jsxs("div", { className: "mt-6 grid gap-3", children: [_jsx(OutlineButton, { className: "w-full", onClick: () => setAuthMode("login"), children: "Iniciar sesi\u00F3n" }), _jsx(PrimaryButton, { className: "w-full", onClick: () => setAuthMode("signup"), children: "Abrir cuenta" })] })] })) : null, _jsxs("main", { className: "mx-auto mt-2 flex w-full max-w-5xl flex-col gap-20 px-6 pb-24", children: [_jsxs("section", { className: "grid gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center", children: [_jsxs("div", { className: "flex flex-col gap-10", children: [_jsxs("div", { className: "max-w-xl space-y-6", children: [_jsxs("span", { className: "inline-flex items-center gap-2 rounded-full border border-slate-300/60 bg-white/60 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500", children: ["Aurora Priv\u00E9", _jsx("span", { className: "h-1 w-1 rounded-full bg-slate-400" }), "Banca confidencial"] }), _jsx("h1", { className: "text-5xl font-semibold tracking-tight text-slate-900 sm:text-6xl", children: "Cr\u00E9ditos, sin ruido." }), _jsx("p", { className: "max-w-md text-base text-slate-500", children: "Gesti\u00F3n privada para quienes necesitan decisiones \u00E1giles y control absoluto." })] }), _jsxs("div", { className: "flex flex-wrap items-center gap-4", children: [_jsx(PrimaryButton, { onClick: () => setAuthMode("signup"), children: "Solicitar acceso" }), _jsx(OutlineButton, { onClick: () => setAuthMode("login"), children: "Entrar al portal" })] }), _jsx("dl", { className: "grid gap-6 sm:grid-cols-3", children: stats.map((item) => (_jsxs("div", { className: "rounded-3xl border border-slate-200/70 bg-white/60 px-6 py-5 text-slate-600 shadow-sm", children: [_jsx("dt", { className: "text-xs uppercase tracking-[0.3em] text-slate-400", children: item.label }), _jsx("dd", { className: "mt-2 text-2xl font-semibold text-slate-900", children: item.value })] }, item.label))) })] }), _jsxs("div", { className: "relative", children: [_jsx("div", { className: "absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-white/80 via-white/40 to-transparent shadow-[0_45px_80px_-60px_rgba(15,23,42,0.45)]" }), _jsx(AuthPanel, { mode: authMode, onModeChange: setAuthMode, onSubmit: handleSubmit })] })] }), _jsxs("section", { id: "respaldo", className: "grid gap-8", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h2", { className: "text-2xl font-semibold text-slate-900", children: "Respaldo Aurora" }), _jsx("span", { className: "text-xs uppercase tracking-[0.3em] text-slate-400", children: "Discreci\u00F3n total" })] }), _jsx("div", { className: "grid gap-6 lg:grid-cols-3", children: assurances.map((item) => (_jsxs("article", { className: "flex flex-col gap-3 rounded-3xl border border-slate-200/70 bg-white/70 p-6 text-slate-600 shadow-sm", children: [_jsx("h3", { className: "text-lg font-semibold text-slate-900", children: item.title }), _jsx("p", { className: "text-sm text-slate-500", children: item.caption })] }, item.title))) })] })] })] }));
+};
+const container = document.getElementById("root");
+if (!container) {
+    throw new Error("No root element found");
+}
+createRoot(container).render(_jsx(App, {}));
+=======
+
+const navLinks = [
+  { href: "#soluciones", label: "Soluciones" },
+  { href: "#seguridad", label: "Seguridad" },
+  { href: "#asesores", label: "Asesores" },
+];
+
+const stats = [
+  { value: "15", label: "Años activos" },
+  { value: "4.9", label: "Índice de confianza" },
+  { value: "$250M", label: "Capital gestionado" },
+];
+
+const solutionTiles = [
+  { title: "Crédito Personal", caption: "Decisiones en minutos" },
+  { title: "Línea Pyme", caption: "Liquidez precisa" },
+  { title: "Hipotecario", caption: "Asesoría dedicada" },
+];
+
+const securityPoints = ["Cifrado integral", "MFA obligatorio", "Monitoreo 24/7"];
+
+const advisorHighlights = ["Mesa de inversión", "Comités de riesgo", "Acompañamiento legal"];
 
 const authCopy = {
-  login: {
-    title: "Bienvenido de vuelta",
-    description: "Ingresa para continuar con tus solicitudes, monitorear tus pagos y descubrir nuevas oportunidades.",
-    cta: "Ingresar",
-  },
   signup: {
-    title: "Crea tu cuenta en minutos",
-    description: "Diseña un perfil financiero a tu medida y obtén ofertas personalizadas de créditos sin fricción.",
+    title: "Crear acceso",
+    hint: "Activa tu banca digital en segundos",
     cta: "Crear cuenta",
+  },
+  login: {
+    title: "Ingresar",
+    hint: "Retoma tu portafolio",
+    cta: "Continuar",
   },
 };
 
-const navigation = [
-  { href: "#servicios", label: "Servicios" },
-  { href: "#beneficios", label: "Beneficios" },
-  { href: "#seguridad", label: "Seguridad" },
-  { href: "#preguntas", label: "Preguntas" },
-];
-
-const features = [
-  {
-    title: "Simula en segundos",
-    description:
-      "Calcula cuotas, tasas y plazos al instante. Guardamos tus simulaciones para que tomes decisiones informado.",
-    badge: "IA financiera",
-  },
-  {
-    title: "Asesoría humana",
-    description:
-      "Un ejecutivo te acompaña en cada paso con recomendaciones claras y transparentes, disponibles 24/7.",
-    badge: "Premium",
-  },
-  {
-    title: "Pagos automatizados",
-    description:
-      "Programa débitos inteligentes, recibe recordatorios preventivos y mantén tu historial impecable.",
-    badge: "Smart",
-  },
-];
-
-const highlights = [
-  { value: "98%", label: "Clientes satisfechos" },
-  { value: "24h", label: "Tiempo máximo de respuesta" },
-  { value: "+$120M", label: "En créditos gestionados" },
-];
-
-const benefits = [
-  {
-    title: "Ofertas a tu medida",
-    description:
-      "Analizamos tu comportamiento financiero para ofrecerte créditos que se ajustan a tu capacidad real y metas personales.",
-  },
-  {
-    title: "Dashboard integral",
-    description:
-      "Visualiza todos tus productos, pagos programados y simulaciones desde una consola clara y accionable.",
-  },
-  {
-    title: "Integración con tu banco",
-    description:
-      "Conectamos con las principales instituciones bancarias para sincronizar tus movimientos y acelerar evaluaciones.",
-  },
-];
-
-const faqItems = [
-  {
-    question: "¿Necesito tener una cuenta bancaria para registrarme?",
-    answer:
-      "No es obligatorio. Puedes comenzar con tu identificación y correo electrónico; la conexión con tu banco es opcional y se puede agregar después.",
-  },
-  {
-    question: "¿Qué tan segura es mi información?",
-    answer:
-      "Aplicamos cifrado de extremo a extremo, autenticación multifactor y monitoreo continuo para mantener tus datos protegidos.",
-  },
-  {
-    question: "¿Puedo pausar mis pagos?",
-    answer:
-      "Sí, ofrecemos planes de alivio temporales y reprogramaciones flexibles en coordinación con tu ejecutivo.",
-  },
-];
-
-const securityPoints = [
-  "Autenticación biométrica opcional",
-  "Alertas en tiempo real por actividad sospechosa",
-  "Certificaciones PCI DSS y ISO/IEC 27001",
-];
-
-const Badge = ({ label }) =>
-  _jsx("span", {
-    className: "inline-flex items-center rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-600",
-    children: label,
-  });
-
-const OutlineButton = ({ children, onClick, className = "" }) =>
+const OutlineButton = ({
+  children,
+  onClick,
+  className = "",
+  type = "button",
+}) =>
   _jsx("button", {
+    type,
     onClick,
-    className: `rounded-full border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-indigo-400 hover:text-indigo-500 ${className}`.trim(),
+    className: `inline-flex items-center justify-center rounded-full border border-slate-300/70 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900 ${className}`.trim(),
     children,
   });
 
-const PrimaryButton = ({ children, onClick, className = "" }) =>
+const PrimaryButton = ({
+  children,
+  onClick,
+  className = "",
+  type = "button",
+}) =>
   _jsx("button", {
+    type,
     onClick,
-    className: `rounded-full bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-indigo-500 ${className}`.trim(),
+    className: `inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700 ${className}`.trim(),
     children,
   });
 
-const InputField = ({ label, type, name, placeholder, autoComplete }) =>
+const InputField = ({
+  label,
+  type,
+  name,
+  placeholder,
+  autoComplete,
+}) =>
   _jsxs("label", {
-    className: "flex flex-col gap-1.5 text-left",
+    className: "grid gap-1 text-left",
     children: [
-      _jsx("span", { className: "text-sm font-medium text-slate-600", children: label }),
+      _jsx("span", {
+        className:
+          "text-xs font-semibold uppercase tracking-wide text-slate-400",
+        children: label,
+      }),
       _jsx("input", {
         className:
-          "w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-sm shadow-indigo-100/30 outline-none transition focus:border-indigo-400 focus:ring focus:ring-indigo-200/50",
+          "w-full rounded-xl border border-white/30 bg-white/70 px-4 py-3 text-sm font-medium text-slate-800 shadow-inner shadow-white/60 outline-none transition focus:border-slate-900 focus:bg-white focus:ring focus:ring-slate-900/10",
         type,
         name,
         placeholder,
@@ -426,29 +176,30 @@ const AuthPanel = ({ mode, onModeChange, onSubmit }) => {
             autoComplete: "name",
           }),
           _jsx(InputField, {
-            label: "Correo electrónico",
+            label: "Correo",
             type: "email",
             name: "email",
-            placeholder: "sofia@ejemplo.com",
+            placeholder: "sofia@aurora.com",
             autoComplete: "email",
           }),
           _jsx(InputField, {
             label: "Contraseña",
             type: "password",
             name: "password",
-            placeholder: "Crea una contraseña segura",
+            placeholder: "••••••••",
             autoComplete: "new-password",
           }),
         ],
       });
     }
+
     return _jsxs(_Fragment, {
       children: [
         _jsx(InputField, {
-          label: "Correo electrónico",
+          label: "Correo",
           type: "email",
           name: "email",
-          placeholder: "tu-correo@ejemplo.com",
+          placeholder: "tu@aurora.com",
           autoComplete: "email",
         }),
         _jsx(InputField, {
@@ -461,688 +212,651 @@ const AuthPanel = ({ mode, onModeChange, onSubmit }) => {
       ],
     });
   }, [mode]);
+
+  const copy = authCopy[mode];
+
   return _jsxs("div", {
     className:
-      "relative isolate overflow-hidden rounded-3xl border border-slate-100 bg-white/90 p-8 shadow-xl shadow-indigo-100/60",
+      "relative isolate overflow-hidden rounded-3xl bg-white/70 p-8 shadow-xl shadow-slate-900/10 ring-1 ring-white/60 backdrop-blur",
     children: [
+      _jsx("div", {
+        className:
+          "absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_rgba(15,23,42,0.08))]",
+      }),
       _jsxs("div", {
-        className: "mb-6 flex items-center gap-4 text-xs font-semibold text-slate-500",
+        className: "flex items-center justify-between gap-4",
         children: [
-          _jsx("button", {
-            type: "button",
-            onClick: () => onModeChange("login"),
-            className: `rounded-full px-3 py-1 transition ${
-              mode === "login" ? "bg-indigo-100 text-indigo-600" : "hover:text-indigo-500"
-            }`,
-            children: "Iniciar sesión",
+          _jsxs("div", {
+            children: [
+              _jsx("p", {
+                className:
+                  "text-sm font-medium uppercase tracking-[0.35em] text-slate-400",
+                children: mode === "signup" ? "Alta" : "Ingreso",
+              }),
+              _jsx("h2", {
+                className: "mt-2 text-2xl font-semibold text-slate-900",
+                children: copy.title,
+              }),
+              _jsx("p", {
+                className: "mt-1 text-sm text-slate-500",
+                children: copy.hint,
+              }),
+            ],
           }),
-          _jsx("button", {
-            type: "button",
-            onClick: () => onModeChange("signup"),
-            className: `rounded-full px-3 py-1 transition ${
-              mode === "signup" ? "bg-indigo-100 text-indigo-600" : "hover:text-indigo-500"
-            }`,
-            children: "Crear cuenta",
+          _jsxs("div", {
+            className: "flex gap-2 rounded-full bg-slate-900/5 p-1",
+            children: [
+              _jsx("button", {
+                type: "button",
+                onClick: () => onModeChange("signup"),
+                className: `rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  mode === "signup"
+                    ? "bg-slate-900 text-white shadow"
+                    : "text-slate-500 hover:text-slate-900"
+                }`,
+                children: "Crear",
+              }),
+              _jsx("button", {
+                type: "button",
+                onClick: () => onModeChange("login"),
+                className: `rounded-full px-3 py-1 text-xs font-semibold transition ${
+                  mode === "login"
+                    ? "bg-slate-900 text-white shadow"
+                    : "text-slate-500 hover:text-slate-900"
+                }`,
+                children: "Entrar",
+              }),
+            ],
           }),
         ],
       }),
-      _jsx("h3", {
-        className: "text-2xl font-semibold tracking-tight text-slate-900",
-        children: authCopy[mode].title,
-      }),
-      _jsx("p", { className: "mt-2 text-sm text-slate-600", children: authCopy[mode].description }),
       _jsxs("form", {
-        className: "mt-6 flex flex-col gap-4",
+        className: "mt-6 grid gap-5",
         onSubmit: (event) => onSubmit(mode, event),
         children: [
           fields,
-          mode === "signup"
-            ? _jsxs("label", {
-                className: "flex items-start gap-2 text-xs text-slate-500",
-                children: [
-                  _jsx("input", {
-                    type: "checkbox",
-                    className: "mt-0.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500",
-                    required: true,
-                  }),
-                  "Acepto los términos de servicio y autorizo el tratamiento de mis datos de acuerdo a la política de privacidad.",
-                ],
-              })
-            : null,
-          _jsx(PrimaryButton, { className: "mt-2 w-full", children: authCopy[mode].cta }),
-          mode === "login"
-            ? _jsx(
-                "a",
-                {
-                  className: "text-center text-xs font-semibold text-indigo-500 transition hover:text-indigo-400",
-                  href: "#recuperar",
-                  children: "Recuperar contraseña",
-                },
-              )
-            : null,
+          _jsx(PrimaryButton, {
+            className: "mt-2 w-full",
+            type: "submit",
+            children: copy.cta,
+          }),
         ],
       }),
+      _jsx("p", {
+        className: "mt-5 text-center text-xs text-slate-400",
+        children: "Al continuar aceptas el acuerdo de servicio.",
+      }),
     ],
   });
 };
 
-const FAQ = ({ openIndex, onToggle }) =>
-  _jsx("div", {
-    className: "space-y-4",
-    id: "preguntas",
-    children: faqItems.map((item, index) => {
-      const isOpen = openIndex === index;
-      return _jsxs(
-        "div",
-        {
-          className: "rounded-2xl border border-slate-200/70 bg-white/70 p-5 shadow-sm",
-          children: [
-            _jsxs(
-              "button",
-              {
-                type: "button",
-                className: "flex w-full items-center justify-between gap-6 text-left",
-                onClick: () => onToggle(index),
-                "aria-expanded": isOpen,
-                children: [
-                  _jsx("span", {
-                    className: "text-base font-semibold text-slate-800",
-                    children: item.question,
-                  }),
-                  _jsx("span", {
-                    className: "text-xl font-medium text-indigo-500",
-                    children: isOpen ? "–" : "+",
-                  }),
-                ],
-              },
-            ),
-            isOpen ? _jsx("p", { className: "mt-3 text-sm leading-6 text-slate-600", children: item.answer }) : null,
-          ],
-        },
-        item.question,
-      );
+const Toast = ({ state, onClose }) => {
+  if (!state) return null;
+
+  const toneStyles =
+    state.tone === "success"
+      ? "bg-emerald-500 text-white shadow-emerald-600/40"
+      : "bg-slate-900 text-white shadow-slate-900/30";
+
+  return _jsx("div", {
+    className:
+      "pointer-events-auto fixed inset-x-0 top-6 z-50 mx-auto w-fit rounded-full px-5 py-3 text-sm font-medium shadow-lg " +
+      toneStyles,
+    children: _jsxs("div", {
+      className: "flex items-center gap-3",
+      children: [
+        _jsx("span", {
+          className:
+            "inline-flex h-2.5 w-2.5 rounded-full bg-white/70",
+        }),
+        _jsx("span", { children: state.message }),
+        _jsx("button", {
+          type: "button",
+          onClick: onClose,
+          className:
+            "rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:bg-white/30",
+          children: "Cerrar",
+        }),
+      ],
     }),
   });
-
-const Toast = ({ toast }) => {
-  if (!toast) return null;
-  return _jsxs("div", {
-    className: `pointer-events-auto fixed inset-x-0 top-5 mx-auto flex max-w-md items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold shadow-xl transition ${
-      toast.tone === "success"
-        ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-        : "border-indigo-200 bg-indigo-50 text-indigo-700"
-    }`,
-    role: "status",
-    children: [
-      _jsx("span", {
-        className: "inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/60 text-lg",
-        children: toast.tone === "success" ? "✓" : "ℹ",
-      }),
-      toast.message,
-    ],
-  });
 };
 
-function HomeApp() {
+const App = () => {
   const [authMode, setAuthMode] = useState("signup");
-  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [openFaq, setOpenFaq] = useState(0);
   const [toast, setToast] = useState(null);
-  const handleAuthSubmit = (mode, event) => {
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleSubmit = (mode, event) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const name = formData.get("fullName")?.toString();
-    const email = formData.get("email")?.toString();
+    const form = new FormData(event.currentTarget);
+    const name = form.get("fullName")?.toString();
+    const email = form.get("email")?.toString();
+
     setToast({
       tone: mode === "signup" ? "success" : "info",
       message:
         mode === "signup"
-          ? `¡Hola ${name ?? ""}! Te enviamos un correo a ${email} para activar tu cuenta.`
-          : `Bienvenido nuevamente${email ? `, ${email}` : ""}. Cargando tu panel personalizado...`,
+          ? `Cuenta lista para ${name ?? email ?? "nuevo cliente"}`
+          : `Bienvenido de nuevo, ${email ?? "cliente"}`,
     });
-    setTimeout(() => setToast(null), 4200);
-    event.currentTarget.reset();
+
+    window.setTimeout(() => setToast(null), 3600);
   };
-  return _jsxs(_Fragment, {
+
+  return _jsxs("div", {
+    className: "relative min-h-screen bg-[#f5f7fb] text-slate-900",
     children: [
-      _jsx(Toast, { toast }),
       _jsxs("div", {
-        className: "relative isolate overflow-hidden",
+        className:
+          "pointer-events-none absolute inset-0 -z-10 overflow-hidden",
         children: [
           _jsx("div", {
             className:
-              "absolute inset-x-0 -top-24 -z-10 mx-auto h-[28rem] max-w-4xl rounded-full bg-gradient-to-br from-indigo-400/40 via-sky-300/40 to-purple-300/40 blur-3xl",
+              "absolute left-1/2 top-0 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(15,23,42,0.08),_rgba(15,23,42,0))]",
           }),
-          _jsxs("header", {
-            className: "sticky top-0 z-20 border-b border-white/20 bg-white/80 backdrop-blur",
+          _jsx("div", {
+            className:
+              "absolute right-[12%] top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(30,64,175,0.22),_rgba(30,64,175,0))]",
+          }),
+          _jsx("div", {
+            className:
+              "absolute left-[8%] bottom-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.2),_rgba(14,116,144,0))]",
+          }),
+        ],
+      }),
+      _jsx(Toast, {
+        state: toast,
+        onClose: () => setToast(null),
+      }),
+      _jsxs("header", {
+        className:
+          "mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-8",
+        children: [
+          _jsxs("a", {
+            href: "#",
+            className:
+              "flex items-center gap-2 text-lg font-semibold text-slate-900",
             children: [
-              _jsxs("div", {
-                className: "mx-auto flex max-w-6xl items-center justify-between px-6 py-5",
-                children: [
-                  _jsxs(
+              _jsx("span", {
+                className:
+                  "flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-sm font-bold text-white",
+                children: "BA",
+              }),
+              "Banco Aurora",
+            ],
+          }),
+          _jsx("nav", {
+            className:
+              "hidden items-center gap-10 text-sm font-medium text-slate-600 md:flex",
+            children: navLinks.map((link) =>
+              _jsx(
+                "a",
+                {
+                  href: link.href,
+                  className: "transition hover:text-slate-900",
+                  children: link.label,
+                },
+                link.href,
+              ),
+            ),
+          }),
+          _jsxs("div", {
+            className: "hidden gap-3 md:flex",
+            children: [
+              _jsx(OutlineButton, {
+                onClick: () => setAuthMode("login"),
+                children: "Iniciar sesión",
+              }),
+              _jsx(PrimaryButton, {
+                onClick: () => setAuthMode("signup"),
+                children: "Abrir cuenta",
+              }),
+            ],
+          }),
+          _jsxs("button", {
+            type: "button",
+            className: "md:hidden",
+            onClick: () => setMobileOpen((prev) => !prev),
+            "aria-label": "Toggle navigation",
+            children: [
+              _jsx("span", {
+                className: "block h-0.5 w-6 bg-slate-900",
+              }),
+              _jsx("span", {
+                className: "mt-1 block h-0.5 w-6 bg-slate-900",
+              }),
+              _jsx("span", {
+                className: "mt-1 block h-0.5 w-6 bg-slate-900",
+              }),
+            ],
+          }),
+        ],
+      }),
+      mobileOpen
+        ? _jsxs("div", {
+            className:
+              "mx-6 mb-6 rounded-3xl border border-slate-200/60 bg-white/90 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur md:hidden",
+            children: [
+              _jsx("nav", {
+                className: "grid gap-4",
+                children: navLinks.map((link) =>
+                  _jsx(
                     "a",
                     {
-                      className: "flex items-center gap-3",
-                      href: "#inicio",
-                      "aria-label": "Ir al inicio",
-                      children: [
-                        _jsx("span", {
+                      href: link.href,
+                      className: "font-medium text-slate-700",
+                      onClick: () => setMobileOpen(false),
+                      children: link.label,
+                    },
+                    link.href,
+                  ),
+                ),
+              }),
+              _jsxs("div", {
+                className: "mt-6 grid gap-3",
+                children: [
+                  _jsx(OutlineButton, {
+                    className: "w-full",
+                    onClick: () => setAuthMode("login"),
+                    children: "Iniciar sesión",
+                  }),
+                  _jsx(PrimaryButton, {
+                    className: "w-full",
+                    onClick: () => setAuthMode("signup"),
+                    children: "Abrir cuenta",
+                  }),
+                ],
+              }),
+            ],
+          })
+        : null,
+      _jsxs("main", {
+        className:
+          "mx-auto mt-4 flex w-full max-w-6xl flex-col gap-24 px-6 pb-24",
+        children: [
+          _jsxs("section", {
+            className:
+              "grid gap-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center",
+            children: [
+              _jsxs("div", {
+                className: "flex flex-col gap-10",
+                children: [
+                  _jsxs("div", {
+                    className: "max-w-xl space-y-6",
+                    children: [
+                      _jsxs("div", {
+                        className:
+                          "inline-flex items-center gap-3 rounded-full border border-slate-300/60 bg-white/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500",
+                        children: [
+                          "Banco Aurora",
+                          _jsx("span", {
+                            className:
+                              "h-1 w-1 rounded-full bg-slate-400",
+                          }),
+                          "División Créditos Elite",
+                        ],
+                      }),
+                      _jsx("h1", {
+                        className:
+                          "text-5xl font-semibold tracking-tight text-slate-900 sm:text-6xl",
+                        children: "Crédito con criterio.",
+                      }),
+                      _jsx("p", {
+                        className:
+                          "max-w-md text-base text-slate-500",
+                        children:
+                          "Gestiona préstamos, inversiones y liquidez en una plataforma discreta.",
+                      }),
+                    ],
+                  }),
+                  _jsxs("div", {
+                    className: "flex flex-wrap items-center gap-4",
+                    children: [
+                      _jsx(PrimaryButton, {
+                        onClick: () => setAuthMode("signup"),
+                        children: "Solicitar acceso",
+                      }),
+                      _jsx(OutlineButton, {
+                        onClick: () => setAuthMode("login"),
+                        children: "Entrar al portal",
+                      }),
+                    ],
+                  }),
+                  _jsx("dl", {
+                    className: "grid gap-6 sm:grid-cols-3",
+                    children: stats.map((item) =>
+                      _jsxs(
+                        "div",
+                        {
                           className:
-                            "flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-400 text-lg font-semibold text-white shadow-lg shadow-indigo-500/20",
-                          children: "BA",
-                        }),
-                        _jsxs("div", {
+                            "rounded-3xl border border-slate-200/70 bg-white/50 px-6 py-5 text-slate-600 shadow-sm",
                           children: [
-                            _jsx("p", {
-                              className: "text-lg font-semibold tracking-tight text-slate-900",
-                              children: "Banco Aurora",
+                            _jsx("dt", {
+                              className:
+                                "text-xs uppercase tracking-wider text-slate-400",
+                              children: item.label,
                             }),
-                            _jsx("p", {
-                              className: "text-sm font-medium text-slate-500",
-                              children: "Créditos inteligentes, decisiones brillantes",
+                            _jsx("dd", {
+                              className:
+                                "mt-2 text-2xl font-semibold text-slate-900",
+                              children: item.value,
+                            }),
+                          ],
+                        },
+                        item.label,
+                      ),
+                    ),
+                  }),
+                ],
+              }),
+              _jsxs("div", {
+                className: "relative",
+                children: [
+                  _jsx("div", {
+                    className:
+                      "absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-white/80 via-white/40 to-transparent shadow-[0_45px_80px_-60px_rgba(15,23,42,0.45)]",
+                  }),
+                  _jsx(AuthPanel, {
+                    mode: authMode,
+                    onModeChange: setAuthMode,
+                    onSubmit: handleSubmit,
+                  }),
+                ],
+              }),
+            ],
+          }),
+          _jsxs("section", {
+            id: "soluciones",
+            className: "grid gap-10",
+            children: [
+              _jsxs("div", {
+                className: "flex items-end justify-between",
+                children: [
+                  _jsx("h2", {
+                    className:
+                      "text-3xl font-semibold text-slate-900",
+                    children: "Portafolio minimalista",
+                  }),
+                  _jsx("span", {
+                    className: "text-sm text-slate-500",
+                    children: "Selección curada",
+                  }),
+                ],
+              }),
+              _jsx("div", {
+                className:
+                  "grid gap-6 sm:grid-cols-2 lg:grid-cols-3",
+                children: solutionTiles.map((solution) =>
+                  _jsxs(
+                    "article",
+                    {
+                      className:
+                        "group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white/60 p-6 shadow-lg shadow-slate-900/5 transition hover:-translate-y-1 hover:border-slate-300/60",
+                      children: [
+                        _jsx("div", {
+                          className:
+                            "absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.07),_rgba(15,23,42,0))] opacity-0 transition group-hover:opacity-100",
+                        }),
+                        _jsx("h3", {
+                          className:
+                            "text-lg font-semibold text-slate-900",
+                          children: solution.title,
+                        }),
+                        _jsx("p", {
+                          className:
+                            "mt-3 text-sm text-slate-500",
+                          children: solution.caption,
+                        }),
+                        _jsxs("span", {
+                          className:
+                            "mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400",
+                          children: [
+                            "Detalle",
+                            _jsx("span", {
+                              className:
+                                "h-px w-12 bg-slate-300 transition group-hover:w-16",
                             }),
                           ],
                         }),
                       ],
                     },
+                    solution.title,
                   ),
-                  _jsx("nav", {
-                    className: "hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex",
-                    children: navigation.map((item) =>
-                      _jsx(
-                        "a",
-                        {
-                          className: "transition hover:text-indigo-500",
-                          href: item.href,
-                          children: item.label,
-                        },
-                        item.href,
-                      ),
-                    ),
-                  }),
-                  _jsxs("div", {
-                    className: "hidden items-center gap-3 md:flex",
-                    children: [
-                      _jsx(OutlineButton, {
-                        onClick: () => setAuthMode("login"),
-                        children: "Iniciar sesión",
-                      }),
-                      _jsx(PrimaryButton, {
-                        onClick: () => setAuthMode("signup"),
-                        children: "Crear cuenta",
-                      }),
-                    ],
-                  }),
-                  _jsx("button", {
-                    className:
-                      "rounded-xl border border-slate-200/70 p-2 text-slate-600 transition hover:border-indigo-400 hover:text-indigo-500 md:hidden",
-                    onClick: () => setMobileMenuOpen((value) => !value),
-                    "aria-label": "Abrir menú",
-                    children: _jsx("svg", {
-                      className: "h-5 w-5",
-                      fill: "none",
-                      stroke: "currentColor",
-                      strokeWidth: "1.5",
-                      viewBox: "0 0 24 24",
-                      children: _jsx("path", {
-                        strokeLinecap: "round",
-                        strokeLinejoin: "round",
-                        d: "M4 6h16M4 12h16M4 18h16",
-                      }),
-                    }),
-                  }),
-                ],
+                ),
               }),
-              isMobileMenuOpen
-                ? _jsxs("div", {
-                    className: "border-t border-slate-200/70 bg-white px-6 pb-6 pt-4 md:hidden",
-                    children: [
-                      _jsx("nav", {
-                        className: "flex flex-col gap-4 text-sm font-medium text-slate-600",
-                        children: navigation.map((item) =>
-                          _jsx(
-                            "a",
-                            {
-                              className: "transition hover:text-indigo-500",
-                              href: item.href,
-                              onClick: () => setMobileMenuOpen(false),
-                              children: item.label,
-                            },
-                            item.href,
-                          ),
-                        ),
-                      }),
-                      _jsxs("div", {
-                        className: "mt-6 flex flex-col gap-3",
-                        children: [
-                          _jsx(OutlineButton, {
-                            onClick: () => setAuthMode("login"),
-                            children: "Iniciar sesión",
-                          }),
-                          _jsx(PrimaryButton, {
-                            onClick: () => setAuthMode("signup"),
-                            children: "Crear cuenta",
-                          }),
-                        ],
-                      }),
-                    ],
-                  })
-                : null,
             ],
           }),
-          _jsxs("main", {
-            className: "mx-auto flex w-full max-w-6xl flex-col gap-24 px-6 pb-24 pt-16",
-            id: "inicio",
+          _jsxs("section", {
+            id: "seguridad",
+            className:
+              "grid gap-12 rounded-[3rem] border border-slate-200/80 bg-white/70 px-10 py-14 shadow-[0_35px_70px_-65px_rgba(15,23,42,0.55)] lg:grid-cols-[1.1fr_0.9fr]",
             children: [
-              _jsxs("section", {
-                className: "grid gap-12 md:grid-cols-[1.05fr_0.95fr] md:items-center",
+              _jsxs("div", {
+                className: "space-y-6",
                 children: [
-                  _jsxs("div", {
-                    className: "space-y-8",
-                    children: [
-                      _jsxs("span", {
-                        className:
-                          "inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-indigo-500",
-                        children: ["Nueva banca digital"],
-                      }),
-                      _jsxs("div", {
-                        className: "space-y-6",
-                        children: [
-                          _jsx("h1", {
-                            className: "text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl",
-                            children: "Crédito inteligente, diseñado para tu siguiente paso.",
-                          }),
-                          _jsx("p", {
-                            className: "text-lg leading-8 text-slate-600",
-                            children:
-                              "Banco Aurora combina analítica avanzada y asesoría humana para ayudarte a obtener el préstamo ideal sin trámites eternos. Gestiona todo desde una plataforma elegante y confiable.",
-                          }),
-                        ],
-                      }),
-                      _jsxs("div", {
-                        className: "flex flex-wrap items-center gap-3",
-                        children: [
-                          _jsx(PrimaryButton, {
-                            onClick: () => setAuthMode("signup"),
-                            children: "Quiero mi cuenta",
-                          }),
-                          _jsx(OutlineButton, {
-                            onClick: () => setAuthMode("login"),
-                            children: "Ya tengo cuenta",
-                          }),
-                        ],
-                      }),
-                      _jsx("div", {
-                        className: "grid gap-6 sm:grid-cols-3",
-                        children: highlights.map((item) =>
-                          _jsxs(
-                            "div",
-                            {
-                              className: "rounded-2xl border border-slate-200 bg-white/90 p-4 text-center shadow-sm",
-                              children: [
-                                _jsx("p", {
-                                  className: "text-2xl font-semibold text-indigo-600",
-                                  children: item.value,
-                                }),
-                                _jsx("p", {
-                                  className:
-                                    "mt-1 text-xs font-semibold uppercase tracking-wide text-slate-500",
-                                  children: item.label,
-                                }),
-                              ],
-                            },
-                            item.label,
-                          ),
-                        ),
-                      }),
-                    ],
+                  _jsx("p", {
+                    className:
+                      "text-xs font-semibold uppercase tracking-[0.4em] text-slate-400",
+                    children: "Seguridad",
                   }),
-                  _jsx("div", {
-                    className: "floating-glow relative",
-                    children: _jsx("div", {
-                      className: "glass-surface rounded-3xl border border-white/60 p-6 shadow-xl shadow-indigo-200/60",
-                      children: _jsx(AuthPanel, {
-                        mode: authMode,
-                        onModeChange: setAuthMode,
-                        onSubmit: handleAuthSubmit,
-                      }),
-                    }),
+                  _jsx("h2", {
+                    className:
+                      "text-3xl font-semibold text-slate-900",
+                    children: "Blindaje continuo",
                   }),
-                ],
-              }),
-              _jsxs("section", {
-                className: "space-y-10",
-                id: "servicios",
-                children: [
-                  _jsxs("div", {
-                    className: "max-w-2xl",
-                    children: [
-                      _jsx("h2", {
-                        className: "text-3xl font-semibold text-slate-900",
-                        children: "Una plataforma pensada para crecer contigo",
-                      }),
-                      _jsx("p", {
-                        className: "mt-3 text-base text-slate-600",
-                        children:
-                          "Nuestra suite de herramientas te acompaña desde la simulación hasta la gestión diaria de tus créditos. Todo con indicadores claros, alertas proactivas y soporte en vivo.",
-                      }),
-                    ],
+                  _jsx("p", {
+                    className:
+                      "max-w-sm text-sm text-slate-500",
+                    children:
+                      "Protocolos diseñados para instituciones de alto patrimonio.",
                   }),
-                  _jsx("div", {
-                    className: "grid gap-6 md:grid-cols-3",
-                    children: features.map((feature) =>
+                  _jsx("ul", {
+                    className:
+                      "grid gap-3 text-sm text-slate-600 sm:grid-cols-2",
+                    children: securityPoints.map((point) =>
                       _jsxs(
-                        "article",
+                        "li",
                         {
                           className:
-                            "group flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/80 p-6 shadow-lg shadow-indigo-100/40 transition hover:-translate-y-1 hover:border-indigo-300",
+                            "flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3",
                           children: [
-                            _jsx(Badge, { label: feature.badge }),
-                            _jsx("h3", {
-                              className: "text-xl font-semibold text-slate-900",
-                              children: feature.title,
-                            }),
-                            _jsx("p", {
-                              className: "text-sm leading-6 text-slate-600",
-                              children: feature.description,
-                            }),
                             _jsx("span", {
-                              className: "text-sm font-semibold text-indigo-500 opacity-0 transition group-hover:opacity-100",
-                              children: "Explorar servicios →",
+                              className:
+                                "h-2 w-2 rounded-full bg-slate-900",
                             }),
+                            point,
                           ],
                         },
-                        feature.title,
+                        point,
                       ),
                     ),
                   }),
                 ],
               }),
-              _jsxs("section", {
+              _jsxs("div", {
                 className:
-                  "grid gap-12 rounded-[2.5rem] border border-slate-200/80 bg-gradient-to-br from-white/95 via-indigo-50/70 to-white/90 p-12 shadow-xl shadow-indigo-100/60 md:grid-cols-2",
-                id: "beneficios",
+                  "flex flex-col justify-between gap-6",
                 children: [
                   _jsxs("div", {
-                    className: "space-y-6",
+                    className:
+                      "rounded-[2.5rem] border border-slate-200/70 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-8 py-10 text-white shadow-2xl shadow-slate-900/30",
                     children: [
-                      _jsx("h2", {
-                        className: "text-3xl font-semibold text-slate-900",
-                        children: "Beneficios exclusivos para tu estrategia financiera",
+                      _jsx("p", {
+                        className:
+                          "text-xs uppercase tracking-[0.4em] text-white/60",
+                        children: "Audit Trail",
+                      }),
+                      _jsx("h3", {
+                        className:
+                          "mt-4 text-2xl font-semibold",
+                        children: "Cada movimiento firmado",
                       }),
                       _jsx("p", {
-                        className: "text-base text-slate-600",
+                        className:
+                          "mt-4 text-sm text-white/70",
                         children:
-                          "Optimiza tus finanzas con herramientas automatizadas, reportes predictivos y aliados especialistas que entienden tus objetivos.",
-                      }),
-                      _jsx("ul", {
-                        className: "space-y-4",
-                        children: benefits.map((benefit) =>
-                          _jsxs(
-                            "li",
-                            {
-                              className: "rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm",
-                              children: [
-                                _jsx("p", {
-                                  className: "text-base font-semibold text-slate-900",
-                                  children: benefit.title,
-                                }),
-                                _jsx("p", {
-                                  className: "mt-1 text-sm text-slate-600",
-                                  children: benefit.description,
-                                }),
-                              ],
-                            },
-                            benefit.title,
-                          ),
-                        ),
-                      }),
-                      _jsxs("div", {
-                        className: "flex flex-wrap gap-3",
-                        children: [
-                          _jsx(PrimaryButton, { children: "Hablar con un ejecutivo" }),
-                          _jsx(OutlineButton, { children: "Ver planes empresariales" }),
-                        ],
+                          "Autorizaciones biométricas y control granular de límites.",
                       }),
                     ],
                   }),
                   _jsxs("div", {
-                    className: "space-y-6",
+                    className:
+                      "rounded-[2.5rem] border border-slate-200/60 bg-white/80 px-8 py-8 text-sm text-slate-600 shadow-xl shadow-slate-900/10",
                     children: [
-                      _jsxs("div", {
-                        className: "rounded-3xl border border-white/70 bg-white/70 p-6 shadow-lg",
-                        children: [
-                          _jsx("h3", {
-                            className: "text-lg font-semibold text-slate-900",
-                            children: "Seguridad de nivel bancario",
-                          }),
-                          _jsx("p", {
-                            className: "mt-3 text-sm text-slate-600",
-                            children:
-                              "En Banco Aurora tu información es sagrada. Implementamos estándares globales y un monitoreo constante para que tengas tranquilidad absoluta.",
-                          }),
-                          _jsx("ul", {
-                            className: "mt-5 space-y-3 text-sm text-slate-600",
-                            id: "seguridad",
-                            children: securityPoints.map((point) =>
-                              _jsxs(
-                                "li",
-                                {
-                                  className: "flex items-start gap-2",
-                                  children: [
-                                    _jsx("span", {
-                                      className: "mt-1 h-2.5 w-2.5 rounded-full bg-indigo-400",
-                                    }),
-                                    _jsx("span", { children: point }),
-                                  ],
-                                },
-                                point,
-                              ),
-                            ),
-                          }),
-                        ],
+                      _jsx("p", {
+                        className:
+                          "text-xs uppercase tracking-[0.35em] text-slate-400",
+                        children: "Certificaciones",
                       }),
-                      _jsxs("div", {
-                        className: "rounded-3xl border border-white/70 bg-indigo-600/90 p-6 text-white shadow-xl",
-                        children: [
-                          _jsx("p", {
-                            className: "text-sm uppercase tracking-[0.2em] text-indigo-100",
-                            children: "Historias reales",
-                          }),
-                          _jsx("p", {
-                            className: "mt-4 text-lg font-semibold",
-                            children:
-                              "“En menos de 10 minutos tenía mi aprobación preliminar y un plan hecho a mi medida. La plataforma es espectacular”.",
-                          }),
-                          _jsx("p", {
-                            className: "mt-6 text-sm font-medium text-indigo-100",
-                            children: "María Fernanda • Emprendedora tech",
-                          }),
-                        ],
+                      _jsx("p", {
+                        className:
+                          "mt-3 text-base font-semibold text-slate-900",
+                        children:
+                          "ISO/IEC 27001 · SOC 2 Type II",
                       }),
                     ],
                   }),
                 ],
               }),
-              _jsx("section", {
-                children: _jsxs("div", {
-                  className: "grid gap-12 lg:grid-cols-[0.7fr_1fr]",
-                  children: [
-                    _jsxs("div", {
-                      className: "space-y-4",
-                      children: [
-                        _jsx("h2", {
-                          className: "text-3xl font-semibold text-slate-900",
-                          children: "Preguntas frecuentes",
-                        }),
-                        _jsx("p", {
-                          className: "text-base text-slate-600",
-                          children:
-                            "Resolvemos las dudas más comunes antes de que inicies tu solicitud. ¿Tienes otra pregunta? Escríbenos por el chat en vivo y un especialista responderá en minutos.",
-                        }),
-                      ],
-                    }),
-                    _jsx(FAQ, {
-                      openIndex: openFaq,
-                      onToggle: (index) =>
-                        setOpenFaq((current) => (current === index ? null : index)),
-                    }),
-                  ],
-                }),
-              }),
             ],
           }),
-          _jsx("footer", {
-            className: "border-t border-slate-200/70 bg-white/70",
-            children: _jsxs("div", {
-              className: "mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10 md:flex-row md:items-center md:justify-between",
-              children: [
-                _jsxs("div", {
-                  children: [
-                    _jsx("p", {
-                      className: "text-lg font-semibold text-slate-900",
-                      children: "Banco Aurora",
-                    }),
-                    _jsx("p", {
-                      className: "mt-1 text-sm text-slate-500",
-                      children: "Innovación financiera con rostro humano.",
-                    }),
-                  ],
-                }),
-                _jsxs("div", {
-                  className: "flex flex-wrap gap-4 text-xs font-semibold text-slate-500",
-                  children: [
-                    _jsx("a", {
-                      className: "transition hover:text-indigo-500",
-                      href: "#servicios",
-                      children: "Servicios",
-                    }),
-                    _jsx("a", {
-                      className: "transition hover:text-indigo-500",
-                      href: "#beneficios",
-                      children: "Beneficios",
-                    }),
-                    _jsx("a", {
-                      className: "transition hover:text-indigo-500",
-                      href: "#seguridad",
-                      children: "Seguridad",
-                    }),
-                    _jsx("a", {
-                      className: "transition hover:text-indigo-500",
-                      href: "#preguntas",
-                      children: "Preguntas",
-                    }),
-                  ],
-                }),
-                _jsx("p", {
-                  className: "text-xs text-slate-400",
-                  children: `© ${new Date().getFullYear()} Banco Aurora. Todos los derechos reservados.`,
-                }),
-              ],
-            }),
+          _jsxs("section", {
+            id: "asesores",
+            className:
+              "grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center",
+            children: [
+              _jsxs("div", {
+                className:
+                  "rounded-[3rem] border border-slate-200/70 bg-white/70 px-8 py-10 shadow-xl shadow-slate-900/10",
+                children: [
+                  _jsx("p", {
+                    className:
+                      "text-xs font-semibold uppercase tracking-[0.35em] text-slate-400",
+                    children: "Mesa Aurora",
+                  }),
+                  _jsx("h2", {
+                    className:
+                      "mt-4 text-3xl font-semibold text-slate-900",
+                    children: "Equipo boutique",
+                  }),
+                  _jsx("p", {
+                    className:
+                      "mt-4 text-sm text-slate-500",
+                    children:
+                      "Expertos que acompañan cada decisión crediticia.",
+                  }),
+                  _jsx("div", {
+                    className: "mt-6 flex flex-wrap gap-3",
+                    children: advisorHighlights.map((item) =>
+                      _jsx(
+                        "span",
+                        {
+                          className:
+                            "rounded-full border border-slate-200/60 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500",
+                          children: item,
+                        },
+                        item,
+                      ),
+                    ),
+                  }),
+                ],
+              }),
+              _jsxs("div", {
+                className: "grid gap-6 sm:grid-cols-2",
+                children: [
+                  _jsxs("div", {
+                    className:
+                      "rounded-3xl border border-slate-200/60 bg-white/70 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10",
+                    children: [
+                      _jsx("p", {
+                        className:
+                          "text-xs uppercase tracking-[0.35em] text-slate-400",
+                        children: "Concierge",
+                      }),
+                      _jsx("h3", {
+                        className:
+                          "mt-3 text-lg font-semibold text-slate-900",
+                        children: "Acompañamiento 24/7",
+                      }),
+                      _jsx("p", {
+                        className:
+                          "mt-3 text-sm text-slate-500",
+                        children:
+                          "Canales privados y respuestas en menos de 30 minutos.",
+                      }),
+                    ],
+                  }),
+                  _jsxs("div", {
+                    className:
+                      "rounded-3xl border border-slate-200/60 bg-white/70 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10",
+                    children: [
+                      _jsx("p", {
+                        className:
+                          "text-xs uppercase tracking-[0.35em] text-slate-400",
+                        children: "Insights",
+                      }),
+                      _jsx("h3", {
+                        className:
+                          "mt-3 text-lg font-semibold text-slate-900",
+                        children: "Reportes curados",
+                      }),
+                      _jsx("p", {
+                        className:
+                          "mt-3 text-sm text-slate-500",
+                        children:
+                          "Indicadores estratégicos listos para presentar a directorio.",
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
           }),
         ],
       }),
+      _jsx("footer", {
+        className:
+          "border-t border-slate-200/70 bg-white/60 py-10",
+        children: _jsxs("div", {
+          className:
+            "mx-auto flex w-full max-w-6xl flex-col items-center gap-4 px-6 text-sm text-slate-500 sm:flex-row sm:justify-between",
+          children: [
+            _jsxs("p", {
+              children: [
+                "© ",
+                new Date().getFullYear(),
+                " Banco Aurora. Todos los derechos reservados.",
+              ],
+            }),
+            _jsxs("div", {
+              className: "flex items-center gap-5",
+              children: [
+                _jsx("a", {
+                  href: "#",
+                  className:
+                    "transition hover:text-slate-900",
+                  children: "Política de privacidad",
+                }),
+                _jsx("a", {
+                  href: "#",
+                  className:
+                    "transition hover:text-slate-900",
+                  children: "Contacto directo",
+                }),
+              ],
+            }),
+          ],
+        }),
+      }),
     ],
   });
-}
+};
 
 const container = document.getElementById("root");
-if (container) {
-  createRoot(container).render(_jsx(HomeApp, {}));
->>>>>>> codex/create-homepage-for-banking-app-75qa5y
-}
-=======
-import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
-import { useMemo, useState } from "react";
-import { createRoot } from "react-dom/client";
-const navLinks = [
-    { href: "#soluciones", label: "Soluciones" },
-    { href: "#seguridad", label: "Seguridad" },
-    { href: "#asesores", label: "Asesores" },
-];
-const stats = [
-    { value: "15", label: "Años activos" },
-    { value: "4.9", label: "Índice de confianza" },
-    { value: "$250M", label: "Capital gestionado" },
-];
-const solutionTiles = [
-    { title: "Crédito Personal", caption: "Decisiones en minutos" },
-    { title: "Línea Pyme", caption: "Liquidez precisa" },
-    { title: "Hipotecario", caption: "Asesoría dedicada" },
-];
-const securityPoints = [
-    "Cifrado integral",
-    "MFA obligatorio",
-    "Monitoreo 24/7",
-];
-const advisorHighlights = [
-    "Mesa de inversión",
-    "Comités de riesgo",
-    "Acompañamiento legal",
-];
-const authCopy = {
-    signup: {
-        title: "Crear acceso",
-        hint: "Activa tu banca digital en segundos",
-        cta: "Crear cuenta",
-    },
-    login: {
-        title: "Ingresar",
-        hint: "Retoma tu portafolio",
-        cta: "Continuar",
-    },
-};
-const OutlineButton = ({ children, onClick, className = "", type = "button", }) => (_jsx("button", { type: type, onClick: onClick, className: `inline-flex items-center justify-center rounded-full border border-slate-300/70 px-5 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-400 hover:text-slate-900 ${className}`.trim(), children: children }));
-const PrimaryButton = ({ children, onClick, className = "", type = "button", }) => (_jsx("button", { type: type, onClick: onClick, className: `inline-flex items-center justify-center rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700 ${className}`.trim(), children: children }));
-const InputField = ({ label, type, name, placeholder, autoComplete, }) => (_jsxs("label", { className: "grid gap-1 text-left", children: [_jsx("span", { className: "text-xs font-semibold uppercase tracking-wide text-slate-400", children: label }), _jsx("input", { className: "w-full rounded-xl border border-white/30 bg-white/70 px-4 py-3 text-sm font-medium text-slate-800 shadow-inner shadow-white/60 outline-none transition focus:border-slate-900 focus:bg-white focus:ring focus:ring-slate-900/10", type: type, name: name, placeholder: placeholder, autoComplete: autoComplete, required: true })] }));
-const AuthPanel = ({ mode, onModeChange, onSubmit, }) => {
-    const fields = useMemo(() => {
-        if (mode === "signup") {
-            return (_jsxs(_Fragment, { children: [_jsx(InputField, { label: "Nombre completo", type: "text", name: "fullName", placeholder: "Sof\u00EDa Ram\u00EDrez", autoComplete: "name" }), _jsx(InputField, { label: "Correo", type: "email", name: "email", placeholder: "sofia@aurora.com", autoComplete: "email" }), _jsx(InputField, { label: "Contrase\u00F1a", type: "password", name: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "new-password" })] }));
-        }
-        return (_jsxs(_Fragment, { children: [_jsx(InputField, { label: "Correo", type: "email", name: "email", placeholder: "tu@aurora.com", autoComplete: "email" }), _jsx(InputField, { label: "Contrase\u00F1a", type: "password", name: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "current-password" })] }));
-    }, [mode]);
-    const copy = authCopy[mode];
-    return (_jsxs("div", { className: "relative isolate overflow-hidden rounded-3xl bg-white/70 p-8 shadow-xl shadow-slate-900/10 ring-1 ring-white/60 backdrop-blur", children: [_jsx("div", { className: "absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(148,163,184,0.18),_rgba(15,23,42,0.08))]" }), _jsxs("div", { className: "flex items-center justify-between gap-4", children: [_jsxs("div", { children: [_jsx("p", { className: "text-sm font-medium uppercase tracking-[0.35em] text-slate-400", children: mode === "signup" ? "Alta" : "Ingreso" }), _jsx("h2", { className: "mt-2 text-2xl font-semibold text-slate-900", children: copy.title }), _jsx("p", { className: "mt-1 text-sm text-slate-500", children: copy.hint })] }), _jsxs("div", { className: "flex gap-2 rounded-full bg-slate-900/5 p-1", children: [_jsx("button", { type: "button", onClick: () => onModeChange("signup"), className: `rounded-full px-3 py-1 text-xs font-semibold transition ${mode === "signup"
-                                    ? "bg-slate-900 text-white shadow"
-                                    : "text-slate-500 hover:text-slate-900"}`, children: "Crear" }), _jsx("button", { type: "button", onClick: () => onModeChange("login"), className: `rounded-full px-3 py-1 text-xs font-semibold transition ${mode === "login"
-                                    ? "bg-slate-900 text-white shadow"
-                                    : "text-slate-500 hover:text-slate-900"}`, children: "Entrar" })] })] }), _jsxs("form", { className: "mt-6 grid gap-5", onSubmit: (event) => onSubmit(mode, event), children: [fields, _jsx(PrimaryButton, { className: "mt-2 w-full", type: "submit", children: copy.cta })] }), _jsx("p", { className: "mt-5 text-center text-xs text-slate-400", children: "Al continuar aceptas el acuerdo de servicio." })] }));
-};
-const Toast = ({ state, onClose }) => {
-    if (!state)
-        return null;
-    const toneStyles = state.tone === "success"
-        ? "bg-emerald-500 text-white shadow-emerald-600/40"
-        : "bg-slate-900 text-white shadow-slate-900/30";
-    return (_jsx("div", { className: `pointer-events-auto fixed inset-x-0 top-6 z-50 mx-auto w-fit rounded-full px-5 py-3 text-sm font-medium shadow-lg ${toneStyles}`, children: _jsxs("div", { className: "flex items-center gap-3", children: [_jsx("span", { className: "inline-flex h-2.5 w-2.5 rounded-full bg-white/70" }), _jsx("span", { children: state.message }), _jsx("button", { type: "button", onClick: onClose, className: "rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:bg-white/30", children: "Cerrar" })] }) }));
-};
-const App = () => {
-    const [authMode, setAuthMode] = useState("signup");
-    const [toast, setToast] = useState(null);
-    const [mobileOpen, setMobileOpen] = useState(false);
-    const handleSubmit = (mode, event) => {
-        event.preventDefault();
-        const form = new FormData(event.currentTarget);
-        const name = form.get("fullName")?.toString();
-        const email = form.get("email")?.toString();
-        setToast({
-            tone: mode === "signup" ? "success" : "info",
-            message: mode === "signup"
-                ? `Cuenta lista para ${name ?? email ?? "nuevo cliente"}`
-                : `Bienvenido de nuevo, ${email ?? "cliente"}`,
-        });
-        window.setTimeout(() => {
-            setToast(null);
-        }, 3600);
-    };
-    return (_jsxs("div", { className: "relative min-h-screen bg-[#f5f7fb] text-slate-900", children: [_jsxs("div", { className: "pointer-events-none absolute inset-0 -z-10 overflow-hidden", children: [_jsx("div", { className: "absolute left-1/2 top-0 h-[38rem] w-[38rem] -translate-x-1/2 rounded-full bg-[radial-gradient(circle,_rgba(15,23,42,0.08),_rgba(15,23,42,0))]" }), _jsx("div", { className: "absolute right-[12%] top-20 h-64 w-64 rounded-full bg-[radial-gradient(circle,_rgba(30,64,175,0.22),_rgba(30,64,175,0))]" }), _jsx("div", { className: "absolute left-[8%] bottom-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(14,116,144,0.2),_rgba(14,116,144,0))]" })] }), _jsx(Toast, { state: toast, onClose: () => setToast(null) }), _jsxs("header", { className: "mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-8", children: [_jsxs("a", { href: "#", className: "flex items-center gap-2 text-lg font-semibold text-slate-900", children: [_jsx("span", { className: "flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-sm font-bold text-white", children: "BA" }), "Banco Aurora"] }), _jsx("nav", { className: "hidden items-center gap-10 text-sm font-medium text-slate-600 md:flex", children: navLinks.map((link) => (_jsx("a", { href: link.href, className: "transition hover:text-slate-900", children: link.label }, link.href))) }), _jsxs("div", { className: "hidden gap-3 md:flex", children: [_jsx(OutlineButton, { onClick: () => setAuthMode("login"), children: "Iniciar sesi\u00F3n" }), _jsx(PrimaryButton, { onClick: () => setAuthMode("signup"), children: "Abrir cuenta" })] }), _jsxs("button", { type: "button", className: "md:hidden", onClick: () => setMobileOpen((prev) => !prev), "aria-label": "Toggle navigation", children: [_jsx("span", { className: "block h-0.5 w-6 bg-slate-900" }), _jsx("span", { className: "mt-1 block h-0.5 w-6 bg-slate-900" }), _jsx("span", { className: "mt-1 block h-0.5 w-6 bg-slate-900" })] })] }), mobileOpen ? (_jsxs("div", { className: "mx-6 mb-6 rounded-3xl border border-slate-200/60 bg-white/90 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10 backdrop-blur md:hidden", children: [_jsx("nav", { className: "grid gap-4", children: navLinks.map((link) => (_jsx("a", { href: link.href, className: "font-medium text-slate-700", onClick: () => setMobileOpen(false), children: link.label }, link.href))) }), _jsxs("div", { className: "mt-6 grid gap-3", children: [_jsx(OutlineButton, { className: "w-full", onClick: () => setAuthMode("login"), children: "Iniciar sesi\u00F3n" }), _jsx(PrimaryButton, { className: "w-full", onClick: () => setAuthMode("signup"), children: "Abrir cuenta" })] })] })) : null, _jsxs("main", { className: "mx-auto mt-4 flex w-full max-w-6xl flex-col gap-24 px-6 pb-24", children: [_jsxs("section", { className: "grid gap-16 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-center", children: [_jsxs("div", { className: "flex flex-col gap-10", children: [_jsxs("div", { className: "max-w-xl space-y-6", children: [_jsxs("div", { className: "inline-flex items-center gap-3 rounded-full border border-slate-300/60 bg-white/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500", children: ["Banco Aurora", _jsx("span", { className: "h-1 w-1 rounded-full bg-slate-400" }), "Divisi\u00F3n Cr\u00E9ditos Elite"] }), _jsx("h1", { className: "text-5xl font-semibold tracking-tight text-slate-900 sm:text-6xl", children: "Cr\u00E9dito con criterio." }), _jsx("p", { className: "max-w-md text-base text-slate-500", children: "Gestiona pr\u00E9stamos, inversiones y liquidez en una plataforma discreta." })] }), _jsxs("div", { className: "flex flex-wrap items-center gap-4", children: [_jsx(PrimaryButton, { onClick: () => setAuthMode("signup"), children: "Solicitar acceso" }), _jsx(OutlineButton, { onClick: () => setAuthMode("login"), children: "Entrar al portal" })] }), _jsx("dl", { className: "grid gap-6 sm:grid-cols-3", children: stats.map((item) => (_jsxs("div", { className: "rounded-3xl border border-slate-200/70 bg-white/50 px-6 py-5 text-slate-600 shadow-sm", children: [_jsx("dt", { className: "text-xs uppercase tracking-wider text-slate-400", children: item.label }), _jsx("dd", { className: "mt-2 text-2xl font-semibold text-slate-900", children: item.value })] }, item.label))) })] }), _jsxs("div", { className: "relative", children: [_jsx("div", { className: "absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-white/80 via-white/40 to-transparent shadow-[0_45px_80px_-60px_rgba(15,23,42,0.45)]" }), _jsx(AuthPanel, { mode: authMode, onModeChange: setAuthMode, onSubmit: handleSubmit })] })] }), _jsxs("section", { id: "soluciones", className: "grid gap-10", children: [_jsxs("div", { className: "flex items-end justify-between", children: [_jsx("h2", { className: "text-3xl font-semibold text-slate-900", children: "Portafolio minimalista" }), _jsx("span", { className: "text-sm text-slate-500", children: "Selecci\u00F3n curada" })] }), _jsx("div", { className: "grid gap-6 sm:grid-cols-2 lg:grid-cols-3", children: solutionTiles.map((solution) => (_jsxs("article", { className: "group relative overflow-hidden rounded-3xl border border-slate-200/60 bg-white/60 p-6 shadow-lg shadow-slate-900/5 transition hover:-translate-y-1 hover:border-slate-300/60", children: [_jsx("div", { className: "absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(15,23,42,0.07),_rgba(15,23,42,0))] opacity-0 transition group-hover:opacity-100" }), _jsx("h3", { className: "text-lg font-semibold text-slate-900", children: solution.title }), _jsx("p", { className: "mt-3 text-sm text-slate-500", children: solution.caption }), _jsxs("span", { className: "mt-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-400", children: ["Detalle", _jsx("span", { className: "h-px w-12 bg-slate-300 transition group-hover:w-16" })] })] }, solution.title))) })] }), _jsxs("section", { id: "seguridad", className: "grid gap-12 rounded-[3rem] border border-slate-200/80 bg-white/70 px-10 py-14 shadow-[0_35px_70px_-65px_rgba(15,23,42,0.55)] lg:grid-cols-[1.1fr_0.9fr]", children: [_jsxs("div", { className: "space-y-6", children: [_jsx("p", { className: "text-xs font-semibold uppercase tracking-[0.4em] text-slate-400", children: "Seguridad" }), _jsx("h2", { className: "text-3xl font-semibold text-slate-900", children: "Blindaje continuo" }), _jsx("p", { className: "max-w-sm text-sm text-slate-500", children: "Protocolos dise\u00F1ados para instituciones de alto patrimonio." }), _jsx("ul", { className: "grid gap-3 text-sm text-slate-600 sm:grid-cols-2", children: securityPoints.map((point) => (_jsxs("li", { className: "flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/60 px-4 py-3", children: [_jsx("span", { className: "h-2 w-2 rounded-full bg-slate-900" }), point] }, point))) })] }), _jsxs("div", { className: "flex flex-col justify-between gap-6", children: [_jsxs("div", { className: "rounded-[2.5rem] border border-slate-200/70 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 px-8 py-10 text-white shadow-2xl shadow-slate-900/30", children: [_jsx("p", { className: "text-xs uppercase tracking-[0.4em] text-white/60", children: "Audit Trail" }), _jsx("h3", { className: "mt-4 text-2xl font-semibold", children: "Cada movimiento firmado" }), _jsx("p", { className: "mt-4 text-sm text-white/70", children: "Autorizaciones biom\u00E9tricas y control granular de l\u00EDmites." })] }), _jsxs("div", { className: "rounded-[2.5rem] border border-slate-200/60 bg-white/80 px-8 py-8 text-sm text-slate-600 shadow-xl shadow-slate-900/10", children: [_jsx("p", { className: "text-xs uppercase tracking-[0.35em] text-slate-400", children: "Certificaciones" }), _jsx("p", { className: "mt-3 text-base font-semibold text-slate-900", children: "ISO/IEC 27001 \u00B7 SOC 2 Type II" })] })] })] }), _jsxs("section", { id: "asesores", className: "grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center", children: [_jsxs("div", { className: "rounded-[3rem] border border-slate-200/70 bg-white/70 px-8 py-10 shadow-xl shadow-slate-900/10", children: [_jsx("p", { className: "text-xs font-semibold uppercase tracking-[0.35em] text-slate-400", children: "Mesa Aurora" }), _jsx("h2", { className: "mt-4 text-3xl font-semibold text-slate-900", children: "Equipo boutique" }), _jsx("p", { className: "mt-4 text-sm text-slate-500", children: "Expertos que acompa\u00F1an cada decisi\u00F3n crediticia." }), _jsx("div", { className: "mt-6 flex flex-wrap gap-3", children: advisorHighlights.map((item) => (_jsx("span", { className: "rounded-full border border-slate-200/60 bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-slate-500", children: item }, item))) })] }), _jsxs("div", { className: "grid gap-6 sm:grid-cols-2", children: [_jsxs("div", { className: "rounded-3xl border border-slate-200/60 bg-white/70 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10", children: [_jsx("p", { className: "text-xs uppercase tracking-[0.35em] text-slate-400", children: "Concierge" }), _jsx("h3", { className: "mt-3 text-lg font-semibold text-slate-900", children: "Acompa\u00F1amiento 24/7" }), _jsx("p", { className: "mt-3 text-sm text-slate-500", children: "Canales privados y respuestas en menos de 30 minutos." })] }), _jsxs("div", { className: "rounded-3xl border border-slate-200/60 bg-white/70 p-6 text-sm text-slate-600 shadow-lg shadow-slate-900/10", children: [_jsx("p", { className: "text-xs uppercase tracking-[0.35em] text-slate-400", children: "Insights" }), _jsx("h3", { className: "mt-3 text-lg font-semibold text-slate-900", children: "Reportes curados" }), _jsx("p", { className: "mt-3 text-sm text-slate-500", children: "Indicadores estrat\u00E9gicos listos para presentar a directorio." })] })] })] })] }), _jsx("footer", { className: "border-t border-slate-200/70 bg-white/60 py-10", children: _jsxs("div", { className: "mx-auto flex w-full max-w-6xl flex-col items-center gap-4 px-6 text-sm text-slate-500 sm:flex-row sm:justify-between", children: [_jsxs("p", { children: ["\u00A9 ", new Date().getFullYear(), " Banco Aurora. Todos los derechos reservados."] }), _jsxs("div", { className: "flex items-center gap-5", children: [_jsx("a", { href: "#", className: "transition hover:text-slate-900", children: "Pol\u00EDtica de privacidad" }), _jsx("a", { href: "#", className: "transition hover:text-slate-900", children: "Contacto directo" })] })] }) })] }));
-};
-const container = document.getElementById("root");
 if (!container) {
-    throw new Error("No se encontró el contenedor raíz");
+  throw new Error("No se encontró el contenedor raíz");
 }
 const root = createRoot(container);
 root.render(_jsx(App, {}));
->>>>>>> codex/create-homepage-for-banking-app-12abjb
+>>>>>>> Stashed changes
