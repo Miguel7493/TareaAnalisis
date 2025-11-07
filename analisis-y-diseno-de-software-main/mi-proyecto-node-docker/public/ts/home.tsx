@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 
 type AuthMode = "login" | "signup" | null;
@@ -95,10 +95,10 @@ const PasswordStrength = ({ password }: { password: string }) => {
     }));
     const passedCount = states.filter((item) => item.passed).length;
     const toneMap: Record<number, { label: string; tone: string }> = {
-      0: { label: "Define una clave", tone: "text-slate-400" },
+      0: { label: "Define tu clave", tone: "text-slate-400" },
       1: { label: "Débil", tone: "text-rose-500" },
       2: { label: "Intermedia", tone: "text-amber-500" },
-      3: { label: "Firme", tone: "text-emerald-500" },
+      3: { label: "Sólida", tone: "text-emerald-500" },
       4: { label: "Blindada", tone: "text-emerald-500" },
     };
     return {
@@ -110,35 +110,101 @@ const PasswordStrength = ({ password }: { password: string }) => {
   }, [password]);
 
   return (
-    <div className="space-y-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3">
-      <div className="flex items-center gap-3">
-        <div className="flex h-1.5 flex-1 overflow-hidden rounded-full bg-white">
-          {passwordRules.map((rule, index) => (
-            <span
-              key={rule.id}
-              className={`flex-1 transition ${index < score ? "bg-emerald-500" : "bg-transparent"}`}
-            />
-          ))}
-        </div>
-        <span className={`text-xs font-semibold uppercase tracking-[0.3em] ${tone}`}>{label}</span>
+    <div className="space-y-2 rounded-2xl border border-slate-200/70 bg-white/70 p-3">
+      <div className="flex items-center justify-between text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-400">
+        <span>Fortaleza</span>
+        <span className={`text-slate-600 ${tone}`}>{label}</span>
       </div>
-      <ul className="grid gap-1.5 text-[0.7rem] text-slate-500">
-        {statuses.map((item) => (
-          <li key={item.id} className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className={`flex h-4 w-4 items-center justify-center rounded-full text-[0.55rem] font-semibold ${
-                item.passed ? "bg-emerald-500 text-white" : "bg-slate-200 text-slate-500"
-              }`}
-            >
-              {item.passed ? "✓" : ""}
-            </span>
-            <span className={item.passed ? "text-slate-600" : "text-slate-400"}>{item.label}</span>
-          </li>
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-100">
+        {passwordRules.map((rule, index) => (
+          <span
+            key={rule.id}
+            className={`flex-1 transition ${index < score ? "bg-emerald-500" : "bg-transparent"}`}
+          />
         ))}
-      </ul>
+      </div>
+      <div className="grid grid-cols-2 gap-1 text-[0.6rem] font-medium text-slate-400">
+        {statuses.map((item) => (
+          <span
+            key={item.id}
+            className={`rounded-full border px-2 py-1 text-center transition ${
+              item.passed
+                ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-600"
+                : "border-slate-200/70 bg-white/60"
+            }`}
+          >
+            {item.label}
+          </span>
+        ))}
+      </div>
     </div>
   );
+};
+
+const signupSteps: {
+  id: string;
+  title: string;
+  description: string;
+  fields: (keyof SignupForm)[];
+}[] = [
+  {
+    id: "identity",
+    title: "¿Cómo te llamas?",
+    description: "Cuéntanos tu nombre tal como aparece en tu documento.",
+    fields: ["fullName"],
+  },
+  {
+    id: "rut",
+    title: "Confirma tu RUT",
+    description: "Validamos tu identidad en nuestros sistemas.",
+    fields: ["rut"],
+  },
+  {
+    id: "contact",
+    title: "Tu correo principal",
+    description: "Lo usaremos para enviarte las novedades y la activación.",
+    fields: ["email"],
+  },
+  {
+    id: "security",
+    title: "Define tu clave blindada",
+    description: "Debe cumplir con los estándares de la banca privada.",
+    fields: ["password", "confirm"],
+  },
+];
+
+const signupFieldMeta: Record<
+  keyof SignupForm,
+  { label: string; placeholder: string; type?: string; autoComplete?: string }
+> = {
+  fullName: {
+    label: "Nombre completo",
+    placeholder: "Camila Torres Díaz",
+    autoComplete: "name",
+  },
+  rut: {
+    label: "RUT",
+    placeholder: "12.345.678-9",
+    autoComplete: "off",
+  },
+  email: {
+    label: "Correo electrónico",
+    placeholder: "nombre@empresa.cl",
+    type: "email",
+    autoComplete: "email",
+  },
+  password: {
+    label: "Clave privada",
+    placeholder: "••••••••••",
+    type: "password",
+    autoComplete: "new-password",
+  },
+  confirm: {
+    label: "Confirma tu clave",
+    placeholder: "Repite tu clave",
+    type: "password",
+    autoComplete: "new-password",
+  },
 };
 
 const TextField = ({
@@ -194,14 +260,13 @@ const RememberToggle = ({
     className={`flex items-center gap-2 text-xs font-medium transition ${checked ? "text-slate-800" : "text-slate-500"}`}
   >
     <span
-      className={`flex h-4 w-7 items-center rounded-full border border-slate-300/80 bg-white px-0.5 transition ${
-        checked ? "border-slate-900 bg-slate-900" : ""
+      className={`flex h-4 w-7 items-center rounded-full border px-0.5 transition ${
+        checked
+          ? "justify-end border-slate-900 bg-slate-900"
+          : "justify-start border-slate-300/80 bg-white"
       }`}
     >
-      <span
-        className={`h-3 w-3 rounded-full bg-slate-500 transition ${checked ? "translate-x-3.5 bg-white" : "translate-x-0"}`}
-        style={{ transform: checked ? "translateX(0.75rem)" : "translateX(0px)" }}
-      />
+      <span className="h-3 w-3 rounded-full bg-white shadow-sm transition" />
     </span>
     Recordarme en este equipo
   </button>
@@ -218,6 +283,7 @@ const AuthPanel = ({
   onLoginChange,
   onBlur,
   onSubmit,
+  validateForm,
 }: {
   mode: Exclude<AuthMode, null>;
   onClose: () => void;
@@ -229,8 +295,45 @@ const AuthPanel = ({
   onLoginChange: (field: keyof LoginForm, value: string | boolean) => void;
   onBlur: (form: "signup" | "login", field: string) => void;
   onSubmit: (mode: Exclude<AuthMode, null>, event: FormEvent<HTMLFormElement>) => void;
+  validateForm: (
+    form: "signup" | "login"
+  ) => FieldErrors<SignupForm> | FieldErrors<LoginForm>;
 }) => {
   const isSignup = mode === "signup";
+  const [stepIndex, setStepIndex] = useState(0);
+
+  useEffect(() => {
+    if (isSignup) {
+      setStepIndex(0);
+    }
+  }, [isSignup]);
+
+  useEffect(() => {
+    if (!isSignup) {
+      setStepIndex(0);
+    }
+  }, [mode]);
+
+  const step = signupSteps[stepIndex];
+
+  const handleSubmitInternal = (event: FormEvent<HTMLFormElement>) => {
+    if (isSignup) {
+      event.preventDefault();
+      const errors = validateForm("signup") as FieldErrors<SignupForm>;
+      const hasStepError = step.fields.some((field) => errors[field]);
+      if (hasStepError) {
+        return;
+      }
+      if (stepIndex < signupSteps.length - 1) {
+        setStepIndex((prev) => prev + 1);
+        return;
+      }
+    }
+
+    onSubmit(mode, event);
+  };
+
+  const progress = ((stepIndex + 1) / signupSteps.length) * 100;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
@@ -240,89 +343,76 @@ const AuthPanel = ({
         aria-label="Cerrar"
         onClick={onClose}
       />
-      <section className="relative w-full max-w-md space-y-6 overflow-hidden rounded-[1.75rem] border border-slate-200/70 bg-white/85 p-8 shadow-xl shadow-slate-900/15">
-        <div className="pointer-events-none absolute -top-16 left-1/2 hidden h-32 w-32 -translate-x-1/2 rounded-full bg-gradient-to-br from-slate-900/15 to-rose-300/20 blur-2xl sm:block" />
+      <section className="relative w-full max-w-sm space-y-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-white/80 p-7 shadow-xl shadow-slate-900/10 backdrop-blur">
+        <div className="pointer-events-none absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-slate-900/10 blur-3xl" />
         <header className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">
-              {isSignup ? "Regístrate" : "Inicia sesión"}
+          <div className="space-y-1">
+            <p className="text-[0.6rem] font-semibold uppercase tracking-[0.4em] text-slate-400">
+              {isSignup ? "Nuevo acceso" : "Bienvenido"}
             </p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-900">
-              {isSignup ? "Únete a Aurora Privé" : "Accede a tu cuenta"}
+            <h2 className="text-2xl font-semibold text-slate-900">
+              {isSignup ? step.title : "Ingresa a Aurora Privé"}
             </h2>
-            <p className="mt-1 text-xs text-slate-500">
-              {isSignup ? "Completa tus datos para activar tu banca privada." : "Ingresa con tu correo y clave blindada."}
+            <p className="text-xs text-slate-500">
+              {isSignup
+                ? step.description
+                : "Verifica tu correo y clave para continuar."}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200/80 text-slate-500 transition hover:border-slate-300 hover:text-slate-800"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/70 text-slate-500 transition hover:text-slate-900"
           >
             ✕
           </button>
         </header>
-        <form
-          className="space-y-5"
-          onSubmit={(event: FormEvent<HTMLFormElement>) => onSubmit(mode, event)}
-        >
+        {isSignup ? (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-400">
+              <span>Paso {stepIndex + 1}</span>
+              <span>{Math.round(progress)}%</span>
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-100">
+              <span
+                className="block h-full rounded-full bg-slate-900 transition-all"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        ) : null}
+        <form className="space-y-5" onSubmit={handleSubmitInternal}>
           {isSignup ? (
-            <>
-              <TextField
-                label="Nombre completo"
-                name="fullName"
-                placeholder="María José González"
-                value={signupForm.fullName}
-                onChange={(value) => onSignupChange("fullName", value)}
-                onBlur={() => onBlur("signup", "fullName")}
-                error={signupErrors.fullName}
-              />
-              <TextField
-                label="RUT"
-                name="rut"
-                placeholder="12.345.678-9"
-                value={signupForm.rut}
-                onChange={(value) => onSignupChange("rut", formatRut(value))}
-                onBlur={() => onBlur("signup", "rut")}
-                error={signupErrors.rut}
-              />
-              <TextField
-                label="Correo electrónico"
-                name="email"
-                type="email"
-                placeholder="nombre@empresa.cl"
-                autoComplete="email"
-                value={signupForm.email}
-                onChange={(value) => onSignupChange("email", value)}
-                onBlur={() => onBlur("signup", "email")}
-                error={signupErrors.email}
-              />
-              <TextField
-                label="Clave de acceso"
-                name="password"
-                type="password"
-                placeholder="••••••••••"
-                autoComplete="new-password"
-                value={signupForm.password}
-                onChange={(value) => onSignupChange("password", value)}
-                onBlur={() => onBlur("signup", "password")}
-                error={signupErrors.password}
-              />
-              <TextField
-                label="Confirma tu clave"
-                name="confirm"
-                type="password"
-                placeholder="Repite tu clave"
-                autoComplete="new-password"
-                value={signupForm.confirm}
-                onChange={(value) => onSignupChange("confirm", value)}
-                onBlur={() => onBlur("signup", "confirm")}
-                error={signupErrors.confirm}
-              />
-              <PasswordStrength password={signupForm.password} />
-            </>
+            <div className="space-y-4">
+              {step.fields.map((field) => {
+                const meta = signupFieldMeta[field];
+                return (
+                  <div key={field}>
+                    <TextField
+                      label={meta.label}
+                      name={field}
+                      type={meta.type}
+                      placeholder={meta.placeholder}
+                      autoComplete={meta.autoComplete}
+                      value={signupForm[field]}
+                      onChange={(value) =>
+                        onSignupChange(
+                          field,
+                          field === "rut" ? formatRut(value) : value
+                        )
+                      }
+                      onBlur={() => onBlur("signup", field)}
+                      error={signupErrors[field]}
+                    />
+                  </div>
+                );
+              })}
+              {step.id === "security" ? (
+                <PasswordStrength password={signupForm.password} />
+              ) : null}
+            </div>
           ) : (
-            <>
+            <div className="space-y-4">
               <TextField
                 label="Correo electrónico"
                 name="email"
@@ -345,26 +435,43 @@ const AuthPanel = ({
                 onBlur={() => onBlur("login", "password")}
                 error={loginErrors.password}
               />
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between text-xs text-slate-500">
                 <RememberToggle
                   checked={loginForm.remember}
                   onChange={(value) => onLoginChange("remember", value)}
                 />
                 <button
                   type="button"
-                  className="text-xs font-semibold text-slate-500 transition hover:text-slate-800"
+                  className="font-semibold transition hover:text-slate-900"
                 >
                   Recuperar acceso
                 </button>
               </div>
-            </>
+            </div>
           )}
-          <button
-            type="submit"
-            className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/25 transition hover:bg-slate-700"
-          >
-            {isSignup ? "Crear acceso privado" : "Ingresar"}
-          </button>
+          <div className="flex items-center justify-between gap-3">
+            {isSignup && stepIndex > 0 ? (
+              <button
+                type="button"
+                className="inline-flex flex-1 items-center justify-center rounded-full border border-slate-300/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 transition hover:border-slate-400 hover:text-slate-800"
+                onClick={() => setStepIndex((prev) => Math.max(prev - 1, 0))}
+              >
+                Atrás
+              </button>
+            ) : null}
+            <button
+              type="submit"
+              className={`inline-flex flex-1 items-center justify-center rounded-full px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition ${
+                isSignup ? "bg-slate-900 hover:bg-slate-800" : "bg-slate-900 hover:bg-slate-800"
+              }`}
+            >
+              {isSignup
+                ? stepIndex === signupSteps.length - 1
+                  ? "Crear acceso"
+                  : "Continuar"
+                : "Ingresar"}
+            </button>
+          </div>
         </form>
       </section>
     </div>
@@ -438,6 +545,17 @@ const App = () => {
     setLoginForm((prev) => ({ ...prev, [field]: value }));
   };
 
+  const triggerValidation = (form: "signup" | "login") => {
+    if (form === "signup") {
+      const errors = validateSignup(signupForm);
+      setSignupErrors(errors);
+      return errors;
+    }
+    const errors = validateLogin(loginForm);
+    setLoginErrors(errors);
+    return errors;
+  };
+
   const handleBlur = (form: "signup" | "login", field: string) => {
     if (form === "signup") {
       const updated = validateSignup(signupForm);
@@ -472,71 +590,56 @@ const App = () => {
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-white to-slate-200">
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="aurora-gradient absolute -left-24 top-16 h-64 w-64 rounded-full blur-3xl opacity-40" />
-        <div className="aurora-gradient absolute right-[-6rem] top-1/2 h-72 w-72 -translate-y-1/2 rounded-full blur-3xl opacity-30" />
-        <div className="aurora-gradient absolute -bottom-20 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-3xl opacity-20" />
+        <div className="aurora-gradient absolute -left-32 top-10 h-56 w-56 rounded-full opacity-30 blur-3xl" />
+        <div className="aurora-gradient absolute right-[-5rem] top-1/2 h-64 w-64 -translate-y-1/2 rounded-full opacity-30 blur-3xl" />
+        <div className="aurora-gradient absolute bottom-[-6rem] left-1/2 h-80 w-80 -translate-x-1/2 rounded-full opacity-20 blur-3xl" />
       </div>
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 pt-10">
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 pt-10">
         <div className="flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-lg font-semibold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-900 text-sm font-semibold text-white">
             AP
           </span>
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-500">Aurora Privé</p>
-            <p className="text-sm text-slate-500">Experiencia privada de crédito</p>
+            <p className="text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-500">Aurora Privé</p>
+            <p className="text-xs text-slate-400">Banca privada digital</p>
           </div>
         </div>
-        <div className="hidden items-center gap-2 md:flex">
-          <button
-            type="button"
-            onClick={() => {
-              resetState();
-              setActiveMode("login");
-            }}
-            className="rounded-full border border-slate-300/70 px-5 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-400 hover:text-slate-900"
-          >
-            Ingresar
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              resetState();
-              setActiveMode("signup");
-            }}
-            className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-700"
-          >
-            Crear cuenta
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => showToast("El simulador estará disponible en los próximos días.", "info")}
+          className="hidden items-center gap-2 rounded-full border border-slate-300/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.35em] text-slate-500 transition hover:border-slate-400 hover:text-slate-900 sm:flex"
+        >
+          Simula tu crédito
+        </button>
       </header>
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-20">
-        <section className="relative isolate w-full overflow-hidden rounded-[3rem] border border-white/60 bg-white/75 p-10 text-center shadow-xl shadow-slate-900/10">
-          <div className="pointer-events-none absolute inset-0 opacity-70">
-            <div className="absolute left-1/2 top-0 h-48 w-72 -translate-x-1/2 rounded-full bg-gradient-to-r from-slate-900/10 to-slate-900/0 blur-2xl" />
-            <div className="absolute bottom-0 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-gradient-to-r from-rose-300/20 to-indigo-300/20 blur-3xl" />
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center px-6 py-20">
+        <section className="relative isolate w-full max-w-3xl overflow-hidden rounded-[2.75rem] border border-white/60 bg-white/70 px-8 py-14 text-center shadow-xl shadow-slate-900/10 backdrop-blur">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-1/2 top-8 h-32 w-56 -translate-x-1/2 rounded-full bg-slate-900/10 blur-3xl" />
+            <div className="absolute bottom-6 left-1/2 h-40 w-64 -translate-x-1/2 rounded-full bg-gradient-to-r from-slate-900/10 to-slate-900/0 blur-3xl" />
           </div>
-          <div className="relative mx-auto flex max-w-3xl flex-col items-center gap-12">
-            <div className="space-y-4">
-              <span className="inline-flex items-center rounded-full border border-slate-200/70 px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.4em] text-slate-400">
-                Bienvenido a Aurora Privé
+          <div className="relative mx-auto flex max-w-2xl flex-col items-center gap-10">
+            <div className="space-y-5">
+              <span className="inline-flex items-center rounded-full border border-slate-200/70 px-4 py-1 text-[0.6rem] font-semibold uppercase tracking-[0.45em] text-slate-400">
+                Bienvenido
               </span>
-              <h1 className="text-4xl font-semibold text-slate-900 sm:text-5xl">
-                Una entrada serena a tu próximo crédito
+              <h1 className="text-4xl font-semibold text-slate-900 sm:text-[2.75rem]">
+                Tu acceso privado sin distracciones
               </h1>
-              <p className="text-sm text-slate-500 sm:text-base">
-                Decide en segundos: registra tu acceso, ingresa de forma segura o explora el simulador premium cuando esté disponible.
+              <p className="mx-auto max-w-xl text-sm text-slate-500 sm:text-base">
+                Elige cómo avanzar: crea tu cuenta exclusiva, ingresa con tu clave blindada o agenda tu simulación premium.
               </p>
             </div>
-            <div className="flex w-full flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="grid w-full gap-3 sm:grid-cols-3">
               <button
                 type="button"
                 onClick={() => {
                   resetState();
                   setActiveMode("signup");
                 }}
-                className="group inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-7 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800 sm:w-auto"
+                className="inline-flex items-center justify-center rounded-full bg-slate-900 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800"
               >
-                <span className="mr-2 text-base">●</span> Crear cuenta privada
+                Crear cuenta
               </button>
               <button
                 type="button"
@@ -544,37 +647,40 @@ const App = () => {
                   resetState();
                   setActiveMode("login");
                 }}
-                className="inline-flex w-full items-center justify-center rounded-full border border-slate-300/70 px-7 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900 sm:w-auto"
+                className="inline-flex items-center justify-center rounded-full border border-slate-300/70 bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:text-slate-900"
               >
                 Ingresar
               </button>
               <button
                 type="button"
-                onClick={() => showToast("Nuestro simulador premium se despliega muy pronto.", "info")}
-                className="inline-flex w-full items-center justify-center rounded-full border border-transparent bg-white/80 px-7 py-3 text-sm font-semibold text-slate-700 shadow-inner shadow-white/70 transition hover:border-slate-300 hover:bg-white sm:w-auto"
+                onClick={() => showToast("El simulador estará disponible en los próximos días.", "info")}
+                className="inline-flex items-center justify-center rounded-full border border-transparent bg-white/80 px-6 py-3 text-sm font-semibold text-slate-700 shadow-inner shadow-white/60 transition hover:border-slate-300 hover:text-slate-900"
               >
                 Simula tu crédito
               </button>
             </div>
-            <dl className="grid w-full gap-4 sm:grid-cols-3">
-              {[
-                { label: "Clientes asesorados", value: "1.200+" },
-                { label: "Tiempo promedio de activación", value: "< 5 min" },
-                { label: "Cobertura", value: "Todo Chile" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-slate-200/70 bg-white/80 px-5 py-6 text-left shadow-sm shadow-white/70"
-                >
-                  <dt className="text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400">{item.label}</dt>
-                  <dd className="mt-2 text-xl font-semibold text-slate-900">{item.value}</dd>
-                </div>
-              ))}
-            </dl>
+            <div className="grid w-full gap-4 text-left sm:grid-cols-2">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm shadow-white/80">
+                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-slate-400">
+                  Identidad protegida
+                </p>
+                <p className="mt-3 text-sm text-slate-600">
+                  Validamos tu RUT y correo con protocolos bancarios chilenos para una incorporación segura.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200/70 bg-white/80 p-5 shadow-sm shadow-white/80">
+                <p className="text-[0.6rem] font-semibold uppercase tracking-[0.35em] text-slate-400">
+                  Acompañamiento experto
+                </p>
+                <p className="mt-3 text-sm text-slate-600">
+                  Nuestro equipo te guiará en la simulación de crédito personalizada apenas esté disponible.
+                </p>
+              </div>
+            </div>
           </div>
         </section>
       </main>
-      <footer className="mx-auto w-full max-w-6xl px-6 pb-12 text-left">
+      <footer className="mx-auto w-full max-w-5xl px-6 pb-12 text-left">
         <p className="text-xs text-slate-400">© {new Date().getFullYear()} Aurora Privé. Todos los derechos reservados.</p>
       </footer>
       {toast ? (
@@ -602,6 +708,7 @@ const App = () => {
           onLoginChange={handleLoginChange}
           onBlur={handleBlur}
           onSubmit={handleSubmit}
+          validateForm={triggerValidation}
         />
       ) : null}
     </div>
