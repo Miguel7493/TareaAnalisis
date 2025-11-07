@@ -5,9 +5,13 @@
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2020"],
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
     "jsx": "react-jsx",
 >>>>>>> codex/create-homepage-for-banking-app-75qa5y
+=======
+    "jsx": "react-jsx",
+>>>>>>> codex/create-homepage-for-banking-app-12abjb
     "strict": true,
     "noEmitOnError": true,
     "outDir": "./public/js",
@@ -15,8 +19,12 @@
     "skipLibCheck": true
   },
 <<<<<<< HEAD
+<<<<<<< HEAD
   "include": ["public/ts/**/*.ts"]
 =======
   "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx"]
 >>>>>>> codex/create-homepage-for-banking-app-75qa5y
+=======
+  "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx"]
+>>>>>>> codex/create-homepage-for-banking-app-12abjb
 }
