@@ -79,6 +79,16 @@ const PasswordStrength = ({ password }) => {
                         ? "border-emerald-200/70 bg-emerald-50/80 text-emerald-600"
                         : "border-slate-200/70 bg-white/60"}`, children: item.label }, item.id))) })] }));
 };
+const ensureMotionStyles = () => {
+    if (typeof window === "undefined")
+        return;
+    if (document.getElementById("aurora-motion"))
+        return;
+    const style = document.createElement("style");
+    style.id = "aurora-motion";
+    style.textContent = `@keyframes auroraModalIn {0% {opacity: 0; transform: translateY(12px) scale(0.97);} 60% {opacity: 1;} 100% {opacity: 1; transform: translateY(0) scale(1);}}`;
+    document.head.appendChild(style);
+};
 const signupSteps = [
     {
         id: "identity",
@@ -135,24 +145,42 @@ const signupFieldMeta = {
         autoComplete: "new-password",
     },
 };
-const TextField = ({ label, name, type = "text", value, placeholder, autoComplete, onChange, onBlur, error, }) => (_jsxs("label", { className: "grid gap-2 text-left", children: [_jsx("span", { className: "text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400", children: label }), _jsx("input", { className: `w-full rounded-xl border px-4 py-3 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 ${error ? "border-rose-400/80 bg-rose-50/70" : "border-slate-200/60 bg-white/70"}`, type: type, name: name, value: value, placeholder: placeholder, autoComplete: autoComplete, onChange: (event) => onChange(event.currentTarget.value), onBlur: onBlur, required: true }), error ? _jsx("span", { className: "text-[0.65rem] font-medium text-rose-500", children: error }) : null] }));
+const TextField = ({ label, name, type = "text", value, placeholder, autoComplete, onChange, onBlur, error, }) => (_jsxs("label", { className: "grid gap-2 text-left", children: [_jsx("span", { className: "text-[0.65rem] font-semibold uppercase tracking-[0.35em] text-slate-400", children: label }), _jsx("input", { className: `w-full rounded-2xl border px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none transition focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/10 ${error ? "border-rose-400/80 bg-rose-50/70" : "border-slate-200/60 bg-white/75"}`, type: type, name: name, value: value, placeholder: placeholder, autoComplete: autoComplete, onChange: (event) => onChange(event.currentTarget.value), onBlur: onBlur, required: true }), error ? _jsx("span", { className: "text-[0.65rem] font-medium text-rose-500", children: error }) : null] }));
 const RememberToggle = ({ checked, onChange, }) => (_jsxs("button", { type: "button", onClick: () => onChange(!checked), className: `flex items-center gap-2 text-xs font-medium transition ${checked ? "text-slate-800" : "text-slate-500"}`, children: [_jsx("span", { className: `flex h-4 w-7 items-center rounded-full border px-0.5 transition ${checked
                 ? "justify-end border-slate-900 bg-slate-900"
                 : "justify-start border-slate-300/80 bg-white"}`, children: _jsx("span", { className: "h-3 w-3 rounded-full bg-white shadow-sm transition" }) }), "Recordarme en este equipo"] }));
 const AuthPanel = ({ mode, onClose, signupForm, loginForm, signupErrors, loginErrors, onSignupChange, onLoginChange, onBlur, onSubmit, validateForm, }) => {
     const isSignup = mode === "signup";
     const [stepIndex, setStepIndex] = useState(0);
+    const [lastStepIndex, setLastStepIndex] = useState(0);
+    const [isStepEntering, setIsStepEntering] = useState(true);
+    const [stepDirection, setStepDirection] = useState("forward");
+    const step = signupSteps[stepIndex];
     useEffect(() => {
         if (isSignup) {
             setStepIndex(0);
+            setLastStepIndex(0);
         }
     }, [isSignup]);
     useEffect(() => {
         if (!isSignup) {
             setStepIndex(0);
+            setLastStepIndex(0);
         }
     }, [mode]);
-    const step = signupSteps[stepIndex];
+    useEffect(() => {
+        if (!isSignup)
+            return;
+        setStepDirection(stepIndex >= lastStepIndex ? "forward" : "backward");
+        setLastStepIndex(stepIndex);
+    }, [isSignup, stepIndex, lastStepIndex]);
+    useEffect(() => {
+        if (!isSignup)
+            return;
+        setIsStepEntering(true);
+        const frame = window.requestAnimationFrame(() => setIsStepEntering(false));
+        return () => window.cancelAnimationFrame(frame);
+    }, [isSignup, step.id]);
     const handleSubmitInternal = (event) => {
         if (isSignup) {
             event.preventDefault();
@@ -169,12 +197,16 @@ const AuthPanel = ({ mode, onClose, signupForm, loginForm, signupErrors, loginEr
         onSubmit(mode, event);
     };
     const progress = ((stepIndex + 1) / signupSteps.length) * 100;
-    return (_jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center px-4", children: [_jsx("button", { type: "button", className: "absolute inset-0 bg-slate-900/30 backdrop-blur-sm", "aria-label": "Cerrar", onClick: onClose }), _jsxs("section", { className: "relative w-full max-w-sm space-y-6 overflow-hidden rounded-3xl border border-slate-200/60 bg-white/80 p-7 shadow-xl shadow-slate-900/10 backdrop-blur", children: [_jsx("div", { className: "pointer-events-none absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-slate-900/10 blur-3xl" }), _jsxs("header", { className: "flex items-start justify-between gap-4", children: [_jsxs("div", { className: "space-y-1", children: [_jsx("p", { className: "text-[0.6rem] font-semibold uppercase tracking-[0.4em] text-slate-400", children: isSignup ? "Nuevo acceso" : "Bienvenido" }), _jsx("h2", { className: "text-2xl font-semibold text-slate-900", children: isSignup ? step.title : "Ingresa a Aurora Privé" }), _jsx("p", { className: "text-xs text-slate-500", children: isSignup
+    return (_jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center px-4", children: [_jsx("button", { type: "button", className: "absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity", "aria-label": "Cerrar", onClick: onClose }), _jsxs("section", { className: "relative w-full max-w-[22rem] space-y-6 overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white/80 p-6 shadow-lg shadow-slate-900/10 backdrop-blur", style: { animation: "auroraModalIn 0.45s ease" }, children: [_jsx("div", { className: "pointer-events-none absolute -top-14 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-slate-900/10 blur-3xl" }), _jsxs("header", { className: "flex items-start justify-between gap-4", children: [_jsxs("div", { className: "space-y-1", children: [_jsx("p", { className: "text-[0.6rem] font-semibold uppercase tracking-[0.4em] text-slate-400", children: isSignup ? "Nuevo acceso" : "Bienvenido" }), _jsx("h2", { className: "text-xl font-semibold text-slate-900", children: isSignup ? step.title : "Ingresa a Aurora Privé" }), _jsx("p", { className: "text-[0.7rem] text-slate-500", children: isSignup
                                             ? step.description
-                                            : "Verifica tu correo y clave para continuar." })] }), _jsx("button", { type: "button", onClick: onClose, className: "inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/70 text-slate-500 transition hover:text-slate-900", children: "\u2715" })] }), isSignup ? (_jsxs("div", { className: "space-y-2", children: [_jsxs("div", { className: "flex items-center justify-between text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-400", children: [_jsxs("span", { children: ["Paso ", stepIndex + 1] }), _jsxs("span", { children: [Math.round(progress), "%"] })] }), _jsx("div", { className: "h-1.5 overflow-hidden rounded-full bg-slate-100", children: _jsx("span", { className: "block h-full rounded-full bg-slate-900 transition-all", style: { width: `${progress}%` } }) })] })) : null, _jsxs("form", { className: "space-y-5", onSubmit: handleSubmitInternal, children: [isSignup ? (_jsxs("div", { className: "space-y-4", children: [step.fields.map((field) => {
+                                            : "Verifica tu correo y clave para continuar." })] }), _jsx("button", { type: "button", onClick: onClose, className: "inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200/70 text-slate-500 transition hover:text-slate-900", children: "\u2715" })] }), isSignup ? (_jsxs("div", { className: "space-y-2", children: [_jsxs("div", { className: "flex items-center justify-between text-[0.6rem] font-semibold uppercase tracking-[0.3em] text-slate-400", children: [_jsxs("span", { children: ["Paso ", stepIndex + 1] }), _jsxs("span", { children: [Math.round(progress), "%"] })] }), _jsx("div", { className: "h-1.5 overflow-hidden rounded-full bg-slate-100", children: _jsx("span", { className: "block h-full rounded-full bg-slate-900 transition-all duration-500 ease-out", style: { width: `${progress}%` } }) })] })) : null, _jsxs("form", { className: "space-y-5", onSubmit: handleSubmitInternal, children: [isSignup ? (_jsxs("div", { className: `space-y-4 transition-all duration-300 ease-out ${isStepEntering
+                                    ? stepDirection === "forward"
+                                        ? "translate-y-4 opacity-0"
+                                        : "-translate-y-4 opacity-0"
+                                    : "translate-y-0 opacity-100"}`, children: [step.fields.map((field) => {
                                         const meta = signupFieldMeta[field];
                                         return (_jsx("div", { children: _jsx(TextField, { label: meta.label, name: field, type: meta.type, placeholder: meta.placeholder, autoComplete: meta.autoComplete, value: signupForm[field], onChange: (value) => onSignupChange(field, field === "rut" ? formatRut(value) : value), onBlur: () => onBlur("signup", field), error: signupErrors[field] }) }, field));
-                                    }), step.id === "security" ? (_jsx(PasswordStrength, { password: signupForm.password })) : null] })) : (_jsxs("div", { className: "space-y-4", children: [_jsx(TextField, { label: "Correo electr\u00F3nico", name: "email", type: "email", placeholder: "nombre@empresa.cl", autoComplete: "email", value: loginForm.email, onChange: (value) => onLoginChange("email", value), onBlur: () => onBlur("login", "email"), error: loginErrors.email }), _jsx(TextField, { label: "Clave de acceso", name: "password", type: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "current-password", value: loginForm.password, onChange: (value) => onLoginChange("password", value), onBlur: () => onBlur("login", "password"), error: loginErrors.password }), _jsxs("div", { className: "flex items-center justify-between text-xs text-slate-500", children: [_jsx(RememberToggle, { checked: loginForm.remember, onChange: (value) => onLoginChange("remember", value) }), _jsx("button", { type: "button", className: "font-semibold transition hover:text-slate-900", children: "Recuperar acceso" })] })] })), _jsxs("div", { className: "flex items-center justify-between gap-3", children: [isSignup && stepIndex > 0 ? (_jsx("button", { type: "button", className: "inline-flex flex-1 items-center justify-center rounded-full border border-slate-300/70 px-4 py-3 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500 transition hover:border-slate-400 hover:text-slate-800", onClick: () => setStepIndex((prev) => Math.max(prev - 1, 0)), children: "Atr\u00E1s" })) : null, _jsx("button", { type: "submit", className: `inline-flex flex-1 items-center justify-center rounded-full px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition ${isSignup ? "bg-slate-900 hover:bg-slate-800" : "bg-slate-900 hover:bg-slate-800"}`, children: isSignup
+                                    }), step.id === "security" ? (_jsx(PasswordStrength, { password: signupForm.password })) : null] })) : (_jsxs("div", { className: "space-y-4", children: [_jsx(TextField, { label: "Correo electr\u00F3nico", name: "email", type: "email", placeholder: "nombre@empresa.cl", autoComplete: "email", value: loginForm.email, onChange: (value) => onLoginChange("email", value), onBlur: () => onBlur("login", "email"), error: loginErrors.email }), _jsx(TextField, { label: "Clave de acceso", name: "password", type: "password", placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022", autoComplete: "current-password", value: loginForm.password, onChange: (value) => onLoginChange("password", value), onBlur: () => onBlur("login", "password"), error: loginErrors.password }), _jsxs("div", { className: "flex items-center justify-between text-xs text-slate-500", children: [_jsx(RememberToggle, { checked: loginForm.remember, onChange: (value) => onLoginChange("remember", value) }), _jsx("button", { type: "button", className: "font-semibold transition hover:text-slate-900", children: "Recuperar acceso" })] })] })), _jsxs("div", { className: "flex items-center justify-between gap-3", children: [isSignup && stepIndex > 0 ? (_jsx("button", { type: "button", className: "inline-flex flex-1 items-center justify-center rounded-full border border-slate-300/70 px-3 py-2.5 text-[0.7rem] font-semibold uppercase tracking-[0.3em] text-slate-500 transition hover:border-slate-400 hover:text-slate-800", onClick: () => setStepIndex((prev) => Math.max(prev - 1, 0)), children: "Atr\u00E1s" })) : null, _jsx("button", { type: "submit", className: `inline-flex flex-1 items-center justify-center rounded-full px-3 py-2.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition ${isSignup ? "bg-slate-900 hover:bg-slate-800" : "bg-slate-900 hover:bg-slate-800"}`, children: isSignup
                                             ? stepIndex === signupSteps.length - 1
                                                 ? "Crear acceso"
                                                 : "Continuar"
@@ -197,6 +229,9 @@ const App = () => {
     });
     const [signupErrors, setSignupErrors] = useState({});
     const [loginErrors, setLoginErrors] = useState({});
+    useEffect(() => {
+        ensureMotionStyles();
+    }, []);
     const resetState = () => {
         setSignupErrors({});
         setLoginErrors({});
