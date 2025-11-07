@@ -4,11 +4,19 @@
     "module": "ES2020",
     "moduleResolution": "Bundler",
     "lib": ["DOM", "DOM.Iterable", "ES2020"],
+<<<<<<< HEAD
+=======
+    "jsx": "react-jsx",
+>>>>>>> codex/create-homepage-for-banking-app-75qa5y
     "strict": true,
     "noEmitOnError": true,
     "outDir": "./public/js",
     "rootDir": "./public/ts",
     "skipLibCheck": true
   },
+<<<<<<< HEAD
   "include": ["public/ts/**/*.ts"]
+=======
+  "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx"]
+>>>>>>> codex/create-homepage-for-banking-app-75qa5y
 }
