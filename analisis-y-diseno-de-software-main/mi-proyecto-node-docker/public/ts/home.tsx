@@ -1,5 +1,6 @@
-import { type FormEvent, type ReactNode, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { CreditSimulator } from "./simulator/CreditSimulator";
 
 type AuthMode = "login" | "signup";
 
@@ -9,14 +10,15 @@ type ToastState = {
 } | null;
 
 const navLinks = [
+  { href: "#simulador", label: "Simulador" },
   { href: "#acceso", label: "Acceso" },
   { href: "#respaldo", label: "Respaldo" },
 ];
 
 const stats = [
-  { value: "12", label: "Años de solvencia" },
-  { value: "98%", label: "Clientes retenidos" },
-  { value: "$320M", label: "Activos gestionados" },
+  { value: "12", label: "Años diseñando patrimonio" },
+  { value: "98%", label: "Clientes renuevan" },
+  { value: "$320M", label: "Activos privados" },
 ];
 
 const assurances = [
@@ -260,7 +262,7 @@ const App = () => {
 
       <Toast state={toast} onClose={() => setToast(null)} />
 
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-8">
+      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-8">
         <a href="#" className="flex items-center gap-2 text-lg font-semibold text-slate-900">
           <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-900 text-sm font-bold text-white">AP</span>
           Aurora Privé
@@ -309,8 +311,8 @@ const App = () => {
         </div>
       ) : null}
 
-      <main className="mx-auto mt-2 flex w-full max-w-5xl flex-col gap-20 px-6 pb-24">
-        <section className="grid gap-16 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:items-center">
+      <main className="mx-auto flex w-full max-w-6xl flex-col gap-20 px-6 pb-24">
+        <section className="grid gap-12 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:items-center">
           <div className="flex flex-col gap-10">
             <div className="max-w-xl space-y-6">
               <span className="inline-flex items-center gap-2 rounded-full border border-slate-300/60 bg-white/60 px-4 py-2 text-[0.65rem] font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -318,41 +320,48 @@ const App = () => {
                 <span className="h-1 w-1 rounded-full bg-slate-400" />
                 Banca confidencial
               </span>
-              <h1 className="text-5xl font-semibold tracking-tight text-slate-900 sm:text-6xl">Créditos, sin ruido.</h1>
-              <p className="max-w-md text-base text-slate-500">Gestión privada para quienes necesitan decisiones ágiles y control absoluto.</p>
+              <h1 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">
+                Crédito inteligente con criterio privado
+              </h1>
+              <p className="text-base text-slate-600">
+                Experimenta una plataforma diseñada para ejecutivos que priorizan control, transparencia y confianza.
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <PrimaryButton onClick={() => document.getElementById("simulador")?.scrollIntoView({ behavior: "smooth" })}>
+                  Probar simulador
+                </PrimaryButton>
+                <OutlineButton onClick={() => setAuthMode("signup")}>Agendar asesor</OutlineButton>
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              <PrimaryButton onClick={() => setAuthMode("signup")}>Solicitar acceso</PrimaryButton>
-              <OutlineButton onClick={() => setAuthMode("login")}>Entrar al portal</OutlineButton>
-            </div>
-            <dl className="grid gap-6 sm:grid-cols-3">
+            <dl className="grid gap-4 sm:grid-cols-3">
               {stats.map((item) => (
-                <div key={item.label} className="rounded-3xl border border-slate-200/70 bg-white/60 px-6 py-5 text-slate-600 shadow-sm">
-                  <dt className="text-xs uppercase tracking-[0.3em] text-slate-400">{item.label}</dt>
+                <div key={item.label} className="rounded-2xl border border-white/50 bg-white/70 px-5 py-4 shadow-sm shadow-white/50 backdrop-blur">
+                  <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">{item.label}</dt>
                   <dd className="mt-2 text-2xl font-semibold text-slate-900">{item.value}</dd>
                 </div>
               ))}
             </dl>
           </div>
-          <div className="relative">
-            <div className="absolute inset-0 -z-10 rounded-[2.5rem] bg-gradient-to-br from-white/80 via-white/40 to-transparent shadow-[0_45px_80px_-60px_rgba(15,23,42,0.45)]" />
-            <AuthPanel mode={authMode} onModeChange={setAuthMode} onSubmit={handleSubmit} />
-          </div>
+          <AuthPanel mode={authMode} onModeChange={setAuthMode} onSubmit={handleSubmit} />
         </section>
 
-        <section id="respaldo" className="grid gap-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-semibold text-slate-900">Respaldo Aurora</h2>
-            <span className="text-xs uppercase tracking-[0.3em] text-slate-400">Discreción total</span>
+        <CreditSimulator />
+
+        <section id="respaldo" className="grid gap-6 rounded-[2.5rem] border border-white/60 bg-white/80 p-10 shadow-xl shadow-slate-900/10 backdrop-blur">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-semibold text-slate-900">Respaldos que importan</h2>
+              <p className="mt-2 max-w-xl text-sm text-slate-500">
+                Nuestra gobernanza combina tecnología auditada y custodios certificados para proteger cada decisión.
+              </p>
+            </div>
+            <PrimaryButton onClick={() => setAuthMode("signup")}>Crear acceso privado</PrimaryButton>
           </div>
-          <div className="grid gap-6 lg:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3">
             {assurances.map((item) => (
-              <article
-                key={item.title}
-                className="flex flex-col gap-3 rounded-3xl border border-slate-200/70 bg-white/70 p-6 text-slate-600 shadow-sm"
-              >
-                <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
-                <p className="text-sm text-slate-500">{item.caption}</p>
+              <article key={item.title} className="rounded-2xl border border-white/70 bg-white px-5 py-6 shadow-sm shadow-white/50">
+                <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
+                <p className="mt-2 text-sm text-slate-500">{item.caption}</p>
               </article>
             ))}
           </div>
@@ -363,9 +372,6 @@ const App = () => {
 };
 
 const container = document.getElementById("root");
-
-if (!container) {
-  throw new Error("No root element found");
+if (container) {
+  createRoot(container).render(<App />);
 }
-
-createRoot(container).render(<App />);

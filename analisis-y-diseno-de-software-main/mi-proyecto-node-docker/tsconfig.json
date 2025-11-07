@@ -11,5 +11,5 @@
     "rootDir": "./public/ts",
     "skipLibCheck": true
   },
-  "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx"]
+  "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx", "public/ts/**/*.d.ts"]
 }
