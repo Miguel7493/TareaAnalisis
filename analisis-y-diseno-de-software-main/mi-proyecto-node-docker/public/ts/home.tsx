@@ -1,5 +1,7 @@
 import { FormEvent, ReactNode, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { PublicSimulator } from "../../src/components/PublicSimulator";
+import { ConversionModal } from "../../src/components/ConversionModal";
 
 
 type AuthMode = "login" | "signup";
@@ -235,6 +237,7 @@ const App = () => {
   const [authMode, setAuthMode] = useState<AuthMode>("signup");
   const [toast, setToast] = useState<ToastState>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [showConversionModal, setShowConversionModal] = useState(false);
 
   const handleSubmit = (mode: AuthMode, event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -250,6 +253,24 @@ const App = () => {
     window.setTimeout(() => {
       setToast(null);
     }, 3600);
+  };
+
+  const handleRequestLoan = () => {
+    setShowConversionModal(true);
+  };
+
+  const handleSignup = () => {
+    setShowConversionModal(false);
+    setAuthMode("signup");
+    // Scroll to auth panel
+    document.getElementById("acceso")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleLogin = () => {
+    setShowConversionModal(false);
+    setAuthMode("login");
+    // Scroll to auth panel
+    document.getElementById("acceso")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
@@ -346,8 +367,17 @@ const App = () => {
         </section>
 
         <section id="simulador" className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <PublicSimulator onRequestLoan={handleRequestLoan} />
         </section>
       </main>
+
+      {/* Conversion Modal */}
+      <ConversionModal
+        isOpen={showConversionModal}
+        onClose={() => setShowConversionModal(false)}
+        onSignup={handleSignup}
+        onLogin={handleLogin}
+      />
     </div>
   );
 };
