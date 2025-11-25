@@ -76,7 +76,7 @@ export function generarTablaAmortizacion(monto, tasaAnual, plazoMeses, fechaInic
  * @param {number} monto - Monto del préstamo
  * @returns {number} Interés total
  */
-export function calcularInteres Total(cuotaMensual, plazoMeses, monto) {
+export function calcularInteresTotal(cuotaMensual, plazoMeses, monto) {
     const totalPagar = cuotaMensual * plazoMeses;
     return Math.round((totalPagar - monto) * 100) / 100;
 }

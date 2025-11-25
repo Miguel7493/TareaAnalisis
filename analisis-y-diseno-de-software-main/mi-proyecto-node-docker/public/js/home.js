@@ -49,6 +49,100 @@ const Toast = ({ state, onClose }) => {
         : "bg-slate-900 text-white shadow-slate-900/30";
     return (_jsx("div", { className: `pointer-events-auto fixed inset-x-0 top-6 z-50 mx-auto w-fit rounded-full px-5 py-3 text-sm font-medium shadow-lg ${toneStyles}`, children: _jsxs("div", { className: "flex items-center gap-3", children: [_jsx("span", { className: "inline-flex h-2.5 w-2.5 rounded-full bg-white/70" }), _jsx("span", { children: state.message }), _jsx("button", { type: "button", onClick: onClose, className: "rounded-full bg-white/20 px-3 py-1 text-xs uppercase tracking-wide text-white/80 transition hover:bg-white/30", children: "Cerrar" })] }) }));
 };
+
+
+
+const CreditSimulator = () => {
+    const [amount, setAmount] = useState(5000000);
+    const [months, setMonths] = useState(24);
+
+    const monthlyPayment = useMemo(() => {
+        const rate = 0.015; // 1.5% mensual
+        if (amount === 0 || months === 0) return 0;
+        return (amount * rate) / (1 - Math.pow(1 + rate, -months));
+    }, [amount, months]);
+
+    const formatMoney = (val) =>
+        new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(val);
+
+    return _jsxs("section", {
+        id: "simulador",
+        className: "relative isolate overflow-hidden rounded-[2.5rem] bg-slate-900 px-6 py-12 shadow-2xl shadow-slate-900/40 sm:px-12 md:py-16",
+        children: [
+            _jsxs("div", {
+                className: "mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-2 lg:items-center",
+                children: [
+                    _jsxs("div", {
+                        className: "max-w-xl lg:max-w-lg",
+                        children: [
+                            _jsx("h2", {
+                                className: "text-3xl font-bold tracking-tight text-white sm:text-4xl",
+                                children: "Simula tu libertad financiera",
+                            }),
+                            _jsx("p", {
+                                className: "mt-4 text-lg leading-8 text-slate-300",
+                                children: "Calcula tu cuota mensual con nuestra tasa preferencial del 1.5%. Sin letras chicas.",
+                            }),
+                            _jsxs("div", {
+                                className: "mt-8 grid gap-6",
+                                children: [
+                                    _jsxs("label", {
+                                        className: "grid gap-2",
+                                        children: [
+                                            _jsxs("span", { className: "text-sm font-semibold text-slate-300", children: ["Monto: ", formatMoney(amount)] }),
+                                            _jsx("input", {
+                                                type: "range",
+                                                min: "500000",
+                                                max: "20000000",
+                                                step: "500000",
+                                                value: amount,
+                                                onChange: (e) => setAmount(Number(e.target.value)),
+                                                className: "h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-indigo-500",
+                                            }),
+                                        ],
+                                    }),
+                                    _jsxs("label", {
+                                        className: "grid gap-2",
+                                        children: [
+                                            _jsxs("span", { className: "text-sm font-semibold text-slate-300", children: ["Plazo: ", months, " meses"] }),
+                                            _jsx("input", {
+                                                type: "range",
+                                                min: "6",
+                                                max: "60",
+                                                step: "6",
+                                                value: months,
+                                                onChange: (e) => setMonths(Number(e.target.value)),
+                                                className: "h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-700 accent-indigo-500",
+                                            }),
+                                        ],
+                                    }),
+                                ],
+                            }),
+                        ],
+                    }),
+                    _jsxs("div", {
+                        className: "flex flex-col items-center justify-center rounded-3xl bg-white/10 p-8 ring-1 ring-white/10 backdrop-blur-3xl",
+                        children: [
+                            _jsx("p", { className: "text-base font-semibold leading-7 text-indigo-400", children: "Tu cuota estimada" }),
+                            _jsx("p", {
+                                className: "mt-4 text-5xl font-bold tracking-tight text-white",
+                                children: formatMoney(monthlyPayment),
+                            }),
+                            _jsx("p", { className: "mt-2 text-sm text-slate-400", children: "Mensuales" }),
+                            _jsx(PrimaryButton, {
+                                className: "mt-8 w-full bg-white text-slate-900 hover:bg-slate-100",
+                                onClick: () => alert("Redirigiendo a solicitud..."),
+                                children: "Solicitar este crédito",
+                            }),
+                        ],
+                    }),
+                ],
+            }),
+        ],
+    });
+};
+
+
 const App = () => {
     const [authMode, setAuthMode] = useState("signup");
     const [toast, setToast] = useState(null);
