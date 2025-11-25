@@ -7,9 +7,23 @@
     "jsx": "react-jsx",
     "strict": true,
     "noEmitOnError": true,
-    "outDir": "./public/js",
-    "rootDir": "./public/ts",
-    "skipLibCheck": true
+    "outDir": "./dist",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   },
-  "include": ["public/ts/**/*.ts", "public/ts/**/*.tsx", "public/ts/**/*.d.ts"]
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "public/ts/**/*.ts",
+    "public/ts/**/*.tsx",
+    "public/ts/**/*.d.ts"
+  ],
+  "exclude": ["node_modules", "dist", "build"]
 }
